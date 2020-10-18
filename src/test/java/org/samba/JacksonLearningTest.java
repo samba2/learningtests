@@ -4,17 +4,20 @@ package org.samba;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.val;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class JacksonLearningTest {
 
@@ -87,7 +90,7 @@ public class JacksonLearningTest {
         val enrichedStudent = mapper.readValue(studentJson, EnrichedStudent.class);
         assertEquals("Mahesh", enrichedStudent.getName());
         assertEquals(21, enrichedStudent.getAge());
-        assertEquals(true, enrichedStudent.isFullAge());
+        assertTrue(enrichedStudent.isFullAge());
     }
 
 
@@ -123,7 +126,7 @@ public class JacksonLearningTest {
             jsonGenerator.writeStartObject();
             jsonGenerator.writeStringField("name", student.getName());
             jsonGenerator.writeNumberField("age", student.getAge());
-            val fullAged = student.getAge() >= 21 ? true : false;
+            val fullAged = student.getAge() >= 21;
             jsonGenerator.writeBooleanField("fullAged", fullAged);
             jsonGenerator.writeEndObject();
         }
@@ -148,7 +151,7 @@ public class JacksonLearningTest {
             val student = new EnrichedStudent();
             student.setName(node.get("name").asText());
             student.setAge(age);
-            student.setFullAge(age >= 21 ? true : false);
+            student.setFullAge(age >= 21);
 
             return student;
         }
