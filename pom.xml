@@ -39,5 +39,6 @@
 
   <modules>
     <module>jackson</module>
+    <module>performance</module>
   </modules>
 </project>

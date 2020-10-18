@@ -35,7 +35,7 @@ public class JacksonLearningTest {
 
     @Test
     public void serializeJson() throws JsonProcessingException {
-        val student = new Student("Ronny", 20);
+        val student = new Student("org.samba.Ronny", 20);
 
         val mapper = new ObjectMapper();
         val jsonString = mapper
@@ -72,7 +72,7 @@ public class JacksonLearningTest {
         module.addSerializer(Student.class, new CustomStudentSerializer());
         mapper.registerModule(module);
 
-        val student = new Student("Ronny", 21);
+        val student = new Student("org.samba.Ronny", 21);
         val jsonWithExtraProperty = mapper.writeValueAsString(student);
 
         System.out.println(jsonWithExtraProperty);
