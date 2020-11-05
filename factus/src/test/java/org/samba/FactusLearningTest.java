@@ -47,6 +47,21 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
         }
     }
 
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)  // required by jackson for deserialization
+    @Specification(ns = "test")
+    static class StreetChanged implements EventObject {
+
+        private UUID aggregateId;
+        private String updatedStreet;
+
+        @Override
+        public Set<UUID> aggregateIds() {
+            return Set.of(aggregateId);
+        }
+    }
+
     @Test
     public void simplePublishAndFetchViaSnapshotProjection() {
         factus.publish(new AddressAdded(UUID.randomUUID(),
@@ -64,8 +79,8 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
         assertEquals("End of Nowhere", receivedAddress.getTown());
     }
 
+    @Data
     static class AddressBookProjection implements SnapshotProjection {
-        @Getter
         private List<AddressAdded> addressBook = new ArrayList<>();
 
         @Handler
@@ -102,7 +117,7 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
         assertEquals(1, foundAddress.get().getInvocationCounter());
     }
 
-    @EqualsAndHashCode(callSuper = true) // TODO why?
+
     @Data
     static class AddressAggregate extends Aggregate {
         private String name;
@@ -118,4 +133,62 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
             this.invocationCounter++;
         }
     }
+
+    @Test
+    public void findAggregateWithMultipleEvents() {
+        var louReedAggregateId = UUID.randomUUID();
+
+        // publish 3 events, the first 2 share the same aggregateId
+        factus.publish(List.of(
+                new AddressAdded(
+                        louReedAggregateId,
+                        "Lou Reed",
+                        "Dark Street 1",
+                        "Dark town"),
+                new StreetChanged(
+                        louReedAggregateId,
+                        "Bright Street 42"),
+                new AddressAdded(
+                        UUID.randomUUID(),
+                        "Iggy Pop",
+                        "Skinny Road 21",
+                        "LA")
+        ));
+
+        // act
+        Optional<AddressAggregate2> foundAddress = factus.find(AddressAggregate2.class, louReedAggregateId);
+
+        // assert
+        assertTrue(foundAddress.isPresent());
+        assertEquals("Lou Reed", foundAddress.get().getName());
+        assertEquals("Bright Street 42", foundAddress.get().getStreet());
+        assertEquals("Dark town", foundAddress.get().getTown());
+
+        assertEquals(2, foundAddress.get().getInvocationCounter());
+    }
+
+
+    @Data
+    static class AddressAggregate2 extends Aggregate {
+        private String name;
+        private String street;
+        private String town;
+        private int invocationCounter = 0;
+
+        @Handler
+        void apply(AddressAdded receivedEvent) {
+            this.name = receivedEvent.getName();
+            this.street = receivedEvent.getStreet();
+            this.town = receivedEvent.getTown();
+            this.invocationCounter++;
+        }
+
+        @Handler
+        void apply(StreetChanged receivedEvent) {
+            this.street = receivedEvent.getUpdatedStreet();
+            this.invocationCounter++;
+        }
+
+    }
+
 }
