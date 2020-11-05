@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.samba;
+package org.samba.helper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
