@@ -10,6 +10,7 @@ import org.factcast.factus.Factus;
 import org.factcast.factus.Handler;
 import org.factcast.factus.event.EventObject;
 import org.factcast.factus.event.Specification;
+import org.factcast.factus.lock.LockedOperationAbortedException;
 import org.factcast.factus.projection.Aggregate;
 import org.factcast.factus.projection.LocalManagedProjection;
 import org.factcast.factus.projection.LocalSubscribedProjection;
@@ -98,6 +99,37 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
         assertEquals("Ronny Schmidt", receivedAddress.getName());
         assertEquals("Some Street 1", receivedAddress.getStreet());
         assertEquals("End of Nowhere", receivedAddress.getTown());
+    }
+
+    @Test
+    public void conditionalPublishUsingOptimisticLocking() {
+        var addressAddedEvent = new AddressAdded(randomUUID(),
+                "Ronny Schmidt",
+                "Some Street 1",
+                "End of Nowhere");
+
+        // publish event first time succeeds
+        factus.withLockOn(AddressBookProjection.class).attempt((scopeAddressBookProjection, txt) -> {
+            if (scopeAddressBookProjection.getAddressBook().contains(addressAddedEvent)) {
+                txt.abort("duplicate address detected");
+            } else {
+                txt.publish(addressAddedEvent);
+            }
+        });
+
+        AddressBookProjection addressBookProjection = factus.fetch(AddressBookProjection.class);
+        assertEquals(1, addressBookProjection.getAddressBook().size());
+
+        // publishing 2nd time fails since address is already existing
+        assertThrows(LockedOperationAbortedException.class, () -> {
+            factus.withLockOn(AddressBookProjection.class).attempt((scopeAddressBookProjection, txt) -> {
+                if (scopeAddressBookProjection.getAddressBook().contains(addressAddedEvent)) {
+                    txt.abort("duplicate address detected"); // exception message
+                } else {
+                    txt.publish(addressAddedEvent);
+                }
+            });
+        });
     }
 
     // this object is automatically snapshoted (serialized/ deserialized + stored e.g. in FactCast)
@@ -298,5 +330,4 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
             addressBook.add(receivedAddressAddedEvent);
         }
     }
-
 }
