@@ -41,6 +41,7 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
     @Autowired
     Factus factus;
 
+    /////////////////////// Define Test Events //////////////////////
     @Data
     @AllArgsConstructor
     @NoArgsConstructor(access = AccessLevel.PROTECTED)  // required by jackson for deserialization
@@ -72,6 +73,8 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
             return Set.of(aggregateId);
         }
     }
+
+    /////////////////////// Snapshot Projection //////////////////////
 
     // TODO snapshots are stored by default in FactCast.
     // How to configure an alternative SnapshotCache like Redis? Properties?
@@ -109,11 +112,11 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
                 "End of Nowhere");
 
         // publish event first time succeeds
-        factus.withLockOn(AddressBookProjection.class).attempt((scopeAddressBookProjection, txt) -> {
-            if (scopeAddressBookProjection.getAddressBook().contains(addressAddedEvent)) {
-                txt.abort("duplicate address detected");
+        factus.withLockOn(AddressBookProjection.class).attempt((freshAddressBookProjection, tx) -> {
+            if (freshAddressBookProjection.getAddressBook().contains(addressAddedEvent)) {
+                tx.abort("duplicate address detected");
             } else {
-                txt.publish(addressAddedEvent);
+                tx.publish(addressAddedEvent);
             }
         });
 
@@ -122,11 +125,11 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
 
         // publishing 2nd time fails since address is already existing
         assertThrows(LockedOperationAbortedException.class, () -> {
-            factus.withLockOn(AddressBookProjection.class).attempt((scopeAddressBookProjection, txt) -> {
-                if (scopeAddressBookProjection.getAddressBook().contains(addressAddedEvent)) {
-                    txt.abort("duplicate address detected"); // exception message
+            factus.withLockOn(AddressBookProjection.class).attempt((freshAddressBookProjection, tx) -> {
+                if (freshAddressBookProjection.getAddressBook().contains(addressAddedEvent)) {
+                    tx.abort("duplicate address detected"); // exception message
                 } else {
-                    txt.publish(addressAddedEvent);
+                    tx.publish(addressAddedEvent);
                 }
             });
         });
@@ -142,6 +145,9 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
             addressBook.add(receivedAddressAddedEvent);
         }
     }
+
+
+    /////////////////////// Aggregate Projection //////////////////////
 
     @Test
     public void findSingleEventViaAggregateId() {
@@ -242,8 +248,9 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
             this.street = receivedEvent.getUpdatedStreet();
             this.invocationCounter++;
         }
-
     }
+
+    /////////////////////// Locally Managed Projection //////////////////////
 
     @Test
     public void manualUpdatesWithLocallyManagedProjection() {
@@ -285,13 +292,16 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
     // it can be used as a @Component to be application wide available.
     @Data
     static class AddressBookLocalManagedProjection extends LocalManagedProjection {
-        private List<AddressAdded> addressBook = new ArrayList<>();
+        private List<AddressAdded> addressBook = new ArrayList<>(); // TODO concurrent list required here?
 
         @Handler
         void apply(AddressAdded receivedAddressAddedEvent) {
             addressBook.add(receivedAddressAddedEvent);
         }
     }
+
+
+    /////////////////////// Locally Subscribed Projection //////////////////////
 
     @Test
     public void automaticUpdatedWithLocalSubscribedProjection() throws InterruptedException {
