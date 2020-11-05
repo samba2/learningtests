@@ -34,7 +34,7 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
 
     @Test
     public void simplePublishAndFetch() {
-        factus.publish(new Address(UUID.randomUUID(),
+        factus.publish(new AddressAdded(UUID.randomUUID(),
                 "Ronny Schmidt",
                 "Some Street 1",
                 "End of Nowhere"));
@@ -53,7 +53,7 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
     @AllArgsConstructor
     @NoArgsConstructor(access = AccessLevel.PROTECTED)  // required by jackson for deserialization
     @Specification(ns = "test")
-    static class Address implements EventObject {
+    static class AddressAdded implements EventObject {
         UUID aggregateId;
 
         String name;
@@ -69,11 +69,11 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
     static class AddressBookProjection implements SnapshotProjection {
 
         @Getter
-        private List<Address> addressBook = new ArrayList<>();
+        private List<AddressAdded> addressBook = new ArrayList<>();
 
         @Handler
-        void apply(Address address) {
-            addressBook.add(address);
+        void apply(AddressAdded receivedAddressAddedEvent) {
+            addressBook.add(receivedAddressAddedEvent);
         }
     }
 }
