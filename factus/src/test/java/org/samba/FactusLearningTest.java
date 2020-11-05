@@ -5,12 +5,14 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.factcast.core.subscription.Subscription;
 import org.factcast.factus.Factus;
 import org.factcast.factus.Handler;
 import org.factcast.factus.event.EventObject;
 import org.factcast.factus.event.Specification;
 import org.factcast.factus.projection.Aggregate;
 import org.factcast.factus.projection.LocalManagedProjection;
+import org.factcast.factus.projection.LocalSubscribedProjection;
 import org.factcast.factus.projection.SnapshotProjection;
 import org.junit.jupiter.api.Test;
 import org.samba.helper.AbstractFactCastIntegrationTest;
@@ -22,6 +24,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static java.util.UUID.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -251,6 +254,44 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
     @Data
     static class AddressBookLocalManagedProjection extends LocalManagedProjection {
         private List<AddressAdded> addressBook = new ArrayList<>();
+
+        @Handler
+        void apply(AddressAdded receivedAddressAddedEvent) {
+            addressBook.add(receivedAddressAddedEvent);
+        }
+    }
+
+    @Test
+    public void automaticUpdatedWithLocalSubscribedProjection() throws InterruptedException {
+        var autoUpdateAddressBook = new AddressBookLocalSubscribedProjection();
+        factus.publish(
+                new AddressAdded(
+                        randomUUID(),
+                        "Lou Reed",
+                        "Dark Street 1",
+                        "Dark town"));
+
+        Subscription subscription = factus.subscribeAndBlock(autoUpdateAddressBook);
+        // sync receive (block)
+        subscription.awaitCatchup();
+
+        assertEquals(1, autoUpdateAddressBook.getAddressBook().size());
+
+        factus.publish(
+                new AddressAdded(
+                        randomUUID(),
+                        "Iggy Pop",
+                        "Skinny Road 21",
+                        "LA"));
+        // wait for aync projection update
+        Thread.sleep(1000);
+
+        assertEquals(2, autoUpdateAddressBook.getAddressBook().size());
+    }
+
+    @Data
+    static class AddressBookLocalSubscribedProjection extends LocalSubscribedProjection {
+        private List<AddressAdded> addressBook = new CopyOnWriteArrayList<>(); // ensure concurrent behaviour
 
         @Handler
         void apply(AddressAdded receivedAddressAddedEvent) {
