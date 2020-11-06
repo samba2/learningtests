@@ -3,11 +3,8 @@ package org.samba;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
 import java.time.Month;
@@ -16,6 +13,7 @@ import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// see also https://www.baeldung.com/mapstruct
 // note: had to update to latest maven compiler plugin
 public class MapstructLearningTest {
 
@@ -106,5 +104,32 @@ public class MapstructLearningTest {
         assertEquals(1, shopProduct.getManufactured().getDayOfMonth());
     }
 
+    @Mapper
+    public interface VinylRecordMapper2 {
+        // we only map the date automatically
+        @Mappings({
+                @Mapping(target = "manufactured", source = "vinylRecord.releaseYear")
+        })
+        ShopProduct vinylRecordToShopProduct(VinylRecord vinylRecord);
 
+        @AfterMapping
+        default void customTitleAndDescription(@MappingTarget ShopProduct shopProduct, VinylRecord vinylRecord) {
+            var title = String.format("%s - %s", vinylRecord.getArtist(), vinylRecord.getTitle());
+            shopProduct.setMainTitle(title);
+
+            var description = String.format("Music by %s, album is called %s", vinylRecord.getArtist(), vinylRecord.getTitle());
+            shopProduct.setDescription(description);
+        }
+    }
+
+    @Test
+    public void customMappings() {
+        var mapper = Mappers.getMapper(VinylRecordMapper2.class);
+
+        VinylRecord vinylRecord = new VinylRecord(new Date(2017 - 1900, 8, 1), "Great Artist", "Best Of");
+        ShopProduct shopProduct = mapper.vinylRecordToShopProduct(vinylRecord);
+
+        assertEquals("Great Artist - Best Of", shopProduct.getMainTitle());
+        assertEquals("Music by Great Artist, album is called Best Of", shopProduct.getDescription());
+    }
 }
