@@ -17,7 +17,13 @@
     <dependency>
       <groupId>org.factcast</groupId>
       <artifactId>factcast-factus-event</artifactId>
-      <version>0.3.5-SNAPSHOT</version>
+      <version>0.3.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.factcast</groupId>
+      <artifactId>factcast-factus</artifactId>
+      <version>0.3.6</version>
     </dependency>
 
     <dependency>

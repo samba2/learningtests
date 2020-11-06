@@ -12,7 +12,6 @@ import java.util.UUID;
 
 @Data
 @Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)  // required by jackson for deserialization
 @Specification(ns = "recordstore")
 public class RecordAdded implements EventObject {
 
