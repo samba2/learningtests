@@ -3,9 +3,7 @@ package org.samba;
 import org.factcast.factus.Factus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.samba.domain.RecordAdded;
 
@@ -21,10 +19,15 @@ public class AddRecordHandlerTest {
     @Captor
     ArgumentCaptor<RecordAdded> factusCaptor;
 
+    @Mock
+    Factus mockedFactus;
+
+    @InjectMocks
+    AddRecordHandler uut;
+
     @Test
     void handlerPublishesEvent() {
         // arrange
-        var mockedFactus = mock(Factus.class);
         var cmd = AddRecord.builder()
                 .artist("The Singing Monkeys")
                 .title("Monkeys out and about")
@@ -35,7 +38,6 @@ public class AddRecordHandlerTest {
                 .build();
 
         // act
-        var uut = new AddRecordHandler(mockedFactus);
         uut.handle(cmd);
 
         // assert
@@ -48,4 +50,20 @@ public class AddRecordHandlerTest {
         assertEquals("The Singing Monkeys", publishedEvent.getArtist());
         assertEquals("Monkeys out and about", publishedEvent.getTitle());
     }
+
+    @Test
+    public void verifyRecordCantBeAddedInTheFuture() {
+        // arrange
+        var cmd = AddRecord.builder()
+                .artist("The Singing Monkeys")
+                .title("Monkeys out and about")
+                .label("Ape Records")
+                .format("12")
+                .releaseDate(LocalDate.of(2020, 10, 24))
+                .addedToStore(ZonedDateTime.now().plusYears(10))  // wrong timestamp, in the future
+                .build();
+
+        assertThrows(IllegalArgumentException.class, () -> uut.verify(cmd));
+    }
+
 }

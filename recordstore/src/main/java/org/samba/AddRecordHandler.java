@@ -12,18 +12,21 @@ import org.samba.domain.RecordAdded;
 
 import java.util.UUID;
 
+import static java.time.ZonedDateTime.*;
+
 @RequiredArgsConstructor
 public class AddRecordHandler implements CommandHandler<AddRecord> {
 
     private final Factus factus;
 
-    // TODO add some logic later
     @Override
     public void verify(@NonNull AddRecord addRecord) throws CommandVerificationException {
+        if (addRecord.getAddedToStore().isAfter(now())) {
+            throw new IllegalArgumentException("Record can't ne added in the future");
+        }
     }
 
     // spring-cqs ensures that "verify" is called before "handle". Done using Aspects
-    // TODO register DI in spring: @Mapper(componentModel = "spring")
     @Override
     public void handle(@NonNull AddRecord addRecord) throws CommandHandlingException {
         RecordCommandToEventMapper mapper = Mappers.getMapper(RecordCommandToEventMapper.class);
@@ -32,8 +35,10 @@ public class AddRecordHandler implements CommandHandler<AddRecord> {
         factus.publish(event);
     }
 
+    // TODO register DI in spring: @Mapper(componentModel = "spring")
     @Mapper
     public interface RecordCommandToEventMapper {
         RecordAdded commandToEvent(AddRecord cmd);
     }
+
 }
