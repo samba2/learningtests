@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 // see also https://www.baeldung.com/mapstruct
 // note: had to update to latest maven compiler plugin
+// mapstruct generates mapper at "compile" lifecycle
 public class MapstructLearningTest {
 
     // POJOs had to be static

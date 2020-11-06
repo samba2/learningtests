@@ -22,7 +22,8 @@ public class AddRecordHandlerTest {
     ArgumentCaptor<RecordAdded> factusCaptor;
 
     @Test
-    void renameMe() {
+    void handlerPublishesEvent() {
+        // arrange
         var mockedFactus = mock(Factus.class);
         var cmd = AddRecord.builder()
                 .artist("The Singing Monkeys")
@@ -33,13 +34,17 @@ public class AddRecordHandlerTest {
                 .addedToStore(ZonedDateTime.now())
                 .build();
 
+        // act
         var uut = new AddRecordHandler(mockedFactus);
         uut.handle(cmd);
 
+        // assert
         verify(mockedFactus, times(1)).publish(isA(RecordAdded.class));
 
         Mockito.verify(mockedFactus).publish(factusCaptor.capture());
         var publishedEvent = factusCaptor.getValue();
+
+        assertNotNull(publishedEvent.getRecordId());
         assertEquals("The Singing Monkeys", publishedEvent.getArtist());
         assertEquals("Monkeys out and about", publishedEvent.getTitle());
     }
