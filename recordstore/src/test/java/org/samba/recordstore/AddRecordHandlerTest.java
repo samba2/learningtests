@@ -30,14 +30,13 @@ public class AddRecordHandlerTest {
     @Test
     void handlerPublishesEvent() {
         // arrange
-        var cmd = AddRecord.builder()
-                .artist("The Singing Monkeys")
-                .title("Monkeys out and about")
-                .label("Ape Records")
-                .format("12")
-                .releaseDate(LocalDate.of(2020, 10, 24))
-                .addedToStore(ZonedDateTime.now())
-                .build();
+        var cmd = new AddRecord()
+                .setArtist("The Singing Monkeys")
+                .setTitle("Monkeys out and about")
+                .setLabel("Ape Records")
+                .setFormat("12")
+                .setReleaseDate(LocalDate.of(2020, 10, 24))
+                .setAddedToStore(ZonedDateTime.now());
 
         // act
         uut.handle(cmd);
@@ -56,14 +55,13 @@ public class AddRecordHandlerTest {
     @Test
     public void verifyRecordCantBeAddedInTheFuture() {
         // arrange
-        var cmd = AddRecord.builder()
-                .artist("The Singing Monkeys")
-                .title("Monkeys out and about")
-                .label("Ape Records")
-                .format("12")
-                .releaseDate(LocalDate.of(2020, 10, 24))
-                .addedToStore(ZonedDateTime.now().plusYears(10))  // wrong timestamp, in the future
-                .build();
+        var cmd = new AddRecord()
+                .setArtist("The Singing Monkeys")
+                .setTitle("Monkeys out and about")
+                .setLabel("Ape Records")
+                .setFormat("12")
+                .setReleaseDate(LocalDate.of(2020, 10, 24))
+                .setAddedToStore(ZonedDateTime.now().plusYears(10));  // wrong timestamp, in the future
 
         assertThrows(IllegalArgumentException.class, () -> uut.verify(cmd));
     }

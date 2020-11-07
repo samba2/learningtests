@@ -64,6 +64,8 @@ components:
           type: string
         title:
           type: string
+        label:
+          type: string
         format:
           type: string
         releaseDate:
@@ -76,6 +78,8 @@ components:
         artist:
           type: string
         title:
+          type: string
+        label:
           type: string
         format:
           type: string
