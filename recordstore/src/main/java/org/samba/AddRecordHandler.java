@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.factcast.factus.Factus;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
-import org.samba.domain.RecordAdded;
+import org.samba.domain.events.RecordAdded;
 
 import java.util.UUID;
 

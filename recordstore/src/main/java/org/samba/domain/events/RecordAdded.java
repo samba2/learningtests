@@ -1,4 +1,4 @@
-package org.samba.domain;
+package org.samba.domain.events;
 
 import lombok.*;
 import org.factcast.factus.event.EventObject;
