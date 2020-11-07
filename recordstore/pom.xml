@@ -29,6 +29,12 @@
 
         <dependency>
             <groupId>org.factcast</groupId>
+            <artifactId>factcast-spring-boot-autoconfigure</artifactId>
+            <version>0.3.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.factcast</groupId>
             <artifactId>factcast-itests-factus</artifactId>
             <version>0.3.5-SNAPSHOT</version>
         </dependency>
