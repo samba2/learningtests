@@ -1,0 +1,87 @@
+openapi: 3.0.1
+info:
+  title: Record Store
+  description: 'This is a CQRS/ event sourcing example based on FactCast/ Factus.'
+  contact:
+    email: maik.toepfer@prisma-capacity.eu
+  version: 0.1.0
+externalDocs:
+  description: Factus documentation
+  url: https://docs.factcast.org/factus/
+servers:
+  - url: https://localhost:8080
+tags:
+  - name: recordstore
+paths:
+  /recordstore:
+    post:
+      tags:
+        - recordstore
+      summary: Add a new record to the store
+      operationId: addRecord
+      requestBody:
+        description: Record JSON object to be added to the store
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordWrite'
+            example:
+              artist: The Dancing Monkey
+              title: Dancing Time
+              label: Ape Records
+              format: 12 inch
+              releaseDate: '2020-05-20'
+
+      responses:
+        '201':
+          description: An instance of the record
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/RecordRead'
+
+        '400':
+          description: In case of validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseJson'
+
+components:
+  schemas:
+
+    ErrorResponseJson:
+      type: object
+      properties:
+        error:
+          type: string
+
+    RecordWrite:
+      type: object
+      properties:
+        artist:
+          type: string
+        title:
+          type: string
+        format:
+          type: string
+        releaseDate:
+          type: string
+          format: date
+
+    RecordRead:
+      type: object
+      properties:
+        artist:
+          type: string
+        title:
+          type: string
+        format:
+          type: string
+        releaseDate:
+          type: string
+          format: date
+        addedToStore:
+          type: string
+          format: date-time
