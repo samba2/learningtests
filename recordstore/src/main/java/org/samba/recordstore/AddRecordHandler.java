@@ -1,4 +1,4 @@
-package org.samba;
+package org.samba.recordstore;
 
 import eu.prismacapacity.spring.cqs.cmd.CommandHandler;
 import eu.prismacapacity.spring.cqs.cmd.CommandHandlingException;
@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.factcast.factus.Factus;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
-import org.samba.domain.events.RecordAdded;
+import org.samba.recordstore.events.RecordAdded;
 
 import java.util.UUID;
 

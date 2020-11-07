@@ -1,11 +1,13 @@
-package org.samba;
+package org.samba.recordstore;
 
 import org.factcast.factus.Factus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.samba.domain.events.RecordAdded;
+import org.samba.recordstore.events.RecordAdded;
+import org.samba.recordstore.AddRecord;
+import org.samba.recordstore.AddRecordHandler;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;

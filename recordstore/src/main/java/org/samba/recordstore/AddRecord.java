@@ -1,4 +1,4 @@
-package org.samba;
+package org.samba.recordstore;
 
 import eu.prismacapacity.spring.cqs.cmd.Command;
 import lombok.Builder;

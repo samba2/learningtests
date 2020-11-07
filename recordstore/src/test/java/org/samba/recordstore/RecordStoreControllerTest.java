@@ -1,10 +1,13 @@
-package org.samba;
+package org.samba.recordstore;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.samba.recordstore.AddRecord;
+import org.samba.recordstore.AddRecordHandler;
+import org.samba.recordstore.RecordStoreController;
 
 import java.time.LocalDate;
 

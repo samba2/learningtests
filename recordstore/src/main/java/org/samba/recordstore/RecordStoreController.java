@@ -1,4 +1,4 @@
-package org.samba;
+package org.samba.recordstore;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
