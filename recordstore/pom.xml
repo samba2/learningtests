@@ -62,7 +62,7 @@
             <version>1.4.1.Final</version>
         </dependency>
 
-        <!-- dependencies required by openapi gen. copied from generated pom.xml-->
+        <!-- following dependencies are required by openapi gen. copied from generated pom.xml-->
         <!-- TODO is this a sensible approach ? -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -87,6 +87,10 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jdk8</artifactId>
         </dependency>
         <dependency>
             <groupId>org.openapitools</groupId>
