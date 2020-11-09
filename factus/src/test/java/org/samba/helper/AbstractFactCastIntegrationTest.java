@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.samba;
+package org.samba.helper;
 
 import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;
@@ -64,11 +64,10 @@ public class AbstractFactCastIntegrationTest {
             new GenericContainer<>("redis:5.0.9-alpine").withExposedPorts(6379);
 
     @BeforeAll
-    public static void startContainers() throws InterruptedException {
+    public static void startContainers()  {
         String url = _postgres.getJdbcUrl();
-        // TODO geht ni
         System.setProperty("spring.datasource.driver-class-name", Driver.class.getName());
-        System.setProperty("spring.datasource.type", "com.zaxxer.hikari.HikariDataSource");
+        System.setProperty("spring.datasource.type", "org.apache.tomcat.jdbc.pool.DataSource");
         System.setProperty("spring.datasource.url", url);
         System.setProperty("spring.datasource.username", _postgres.getUsername());
         System.setProperty("spring.datasource.password", _postgres.getPassword());

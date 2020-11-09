@@ -1,0 +1,10 @@
+
+
+
+Controler
+   |
+   v
+Handler (Command Handler)
+   |
+   v
+Factus.publish
