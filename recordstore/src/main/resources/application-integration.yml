@@ -5,9 +5,3 @@ grpc:
       address: static://localhost:9090
       enable-keep-alive: true
       keep-alive-time: 300
-
-# TODO really required
-spring:
-  jackson:
-    serialization:
-      WRITE_DATES_AS_TIMESTAMPS: false

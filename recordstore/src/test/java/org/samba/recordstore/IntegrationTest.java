@@ -26,10 +26,9 @@ public class IntegrationTest extends AbstractFactCastIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
-    // TODO fails with: org.springframework.web.util.NestedServletException: Request processing failed; nested exception is org.springframework.http.converter.HttpMessageConversionException: Type definition error: [simple type, class java.time.LocalDate]; nested exception is com.fasterxml.jackson.databind.exc.InvalidDefinitionException: Cannot construct instance of `java.time.LocalDate` (no Creators, like default constructor, exist): no String-argument constructor/factory method to deserialize from String value ('2020-01-30')
     // seems like a config/ missing dependency problem ?!
     @Test
-    public void makeMeRun() throws Exception {
+    public void addRecord() throws Exception {
         var mapper = new ObjectMapper();
         var newRecord = mapper.createObjectNode();
         newRecord.put("artist", "The Dancing Monkeys");
@@ -43,7 +42,15 @@ public class IntegrationTest extends AbstractFactCastIntegrationTest {
         this.mockMvc.perform(post("/recordstore")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
-                .andDo(print());
-//        assertTrue(controller != null);
+                .andDo(print())
+                .andExpect(status().isOk())
+
+// TODO continue here. make me pass
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+//                .andExpect(jsonPath("$.artist").value("The Dancing Monkeys"))
+//                .andExpect(jsonPath("$.title").value("Dancing Time"))
+//                .andExpect(jsonPath("$.label").value("Ape Records"))
+//                .andExpect(jsonPath("$.format").value("12"))
+        ;
     }
 }
