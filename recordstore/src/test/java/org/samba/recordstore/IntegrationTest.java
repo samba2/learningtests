@@ -9,11 +9,11 @@ import org.springframework.test.context.ActiveProfiles;
 
 @AutoConfigureMockMvc
 @SpringBootTest
-@ActiveProfiles({"test", "integration"})
+@ActiveProfiles({"integration"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class IntegrationTest extends AbstractFactCastIntegrationTest {
 
-    // TODO
+    // TODO add integration tests
     @Test
     public void makeMeRun() {
 
