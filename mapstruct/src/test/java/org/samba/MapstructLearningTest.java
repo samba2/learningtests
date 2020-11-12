@@ -83,9 +83,9 @@ public class MapstructLearningTest {
     @Mapper
     public interface VinylRecordMapper {
         @Mappings({
-                @Mapping(target = "mainTitle", source = "vinylRecord.artist"),
-                @Mapping(target = "description", source = "vinylRecord.title"),
-                @Mapping(target = "manufactured", source = "vinylRecord.releaseYear")
+                @Mapping(target = "mainTitle", source = "artist"),
+                @Mapping(target = "description", source = "title"),
+                @Mapping(target = "manufactured", source = "releaseYear")
         })
         ShopProduct vinylRecordToShopProduct(VinylRecord vinylRecord);
         // other conversion direction missing due to laziness
@@ -109,7 +109,7 @@ public class MapstructLearningTest {
     public interface VinylRecordMapper2 {
         // we only map the date automatically
         @Mappings({
-                @Mapping(target = "manufactured", source = "vinylRecord.releaseYear")
+                @Mapping(target = "manufactured", source = "releaseYear")
         })
         ShopProduct vinylRecordToShopProduct(VinylRecord vinylRecord);
 
