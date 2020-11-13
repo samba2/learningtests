@@ -9,11 +9,13 @@ import org.factcast.factus.Factus;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 import org.samba.recordstore.events.RecordAdded;
+import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
 import static java.time.ZonedDateTime.*;
 
+@Component  // TODO check stereotypes
 @RequiredArgsConstructor
 public class AddRecordHandler implements CommandHandler<AddRecord> {
 

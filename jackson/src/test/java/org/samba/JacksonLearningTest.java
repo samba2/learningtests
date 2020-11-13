@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,6 +23,29 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class JacksonLearningTest {
 
     // TODO continue from here: https://www.baeldung.com/jackson-object-mapper-tutorial#3-handling-date-formats
+
+    @Test
+    public void plainJsonManually() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // create a JSON object
+        ObjectNode user = mapper.createObjectNode();
+        user.put("id", 1);
+        user.put("name", "John Doe");
+        user.put("email", "john.doe@example.com");
+        user.put("salary", 3545.99);
+        user.put("role", "QA Engineer");
+        user.put("admin", false);
+
+        // convert `ObjectNode` to pretty-print JSON
+        // without pretty-print, use `user.toString()` method
+        String json = mapper
+                .writerWithDefaultPrettyPrinter()
+                .writeValueAsString(user);
+
+        // print json
+        System.out.println(json);
+    }
 
     @Test
     public void deserializeJsonToObject() throws JsonProcessingException {

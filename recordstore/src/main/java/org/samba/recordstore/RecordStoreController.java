@@ -9,10 +9,12 @@ import org.samba.recordstore.gen.model.RecordRead;
 import org.samba.recordstore.gen.model.RecordWrite;
 import org.samba.recordstore.gen.rest.RecordstoreApi;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.time.ZonedDateTime;
 
+@RestController
 @RequiredArgsConstructor
 public class RecordStoreController implements RecordstoreApi {
 
