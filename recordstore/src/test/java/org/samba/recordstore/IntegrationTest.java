@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -45,12 +46,10 @@ public class IntegrationTest extends AbstractFactCastIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
 
-// TODO continue here. make me pass
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-//                .andExpect(jsonPath("$.artist").value("The Dancing Monkeys"))
-//                .andExpect(jsonPath("$.title").value("Dancing Time"))
-//                .andExpect(jsonPath("$.label").value("Ape Records"))
-//                .andExpect(jsonPath("$.format").value("12"))
-        ;
+                .andExpect(content().contentTypeCompatibleWith(MediaTypes.HAL_JSON))
+                .andExpect(jsonPath("$.artist").value("The Dancing Monkeys"))
+                .andExpect(jsonPath("$.title").value("Dancing Time"))
+                .andExpect(jsonPath("$.label").value("Ape Records"))
+                .andExpect(jsonPath("$.format").value("12"));
     }
 }

@@ -27,12 +27,15 @@ public class RecordStoreController implements RecordstoreApi {
 
         addRecordHandler.handle(cmd);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity
+                .ok()
+                .body(mapper.addRecordJsonToResponse(recordWrite));
     }
 
     @Mapper
     public interface ReceivedJsonToCommandMapper {
         AddRecord addRecordJsonToCommand(RecordWrite receivedJson);
+        RecordRead addRecordJsonToResponse(RecordWrite receivedJson);
 
         @AfterMapping
         default void fillField(@MappingTarget AddRecord addRecord, RecordWrite receivedJson) {
