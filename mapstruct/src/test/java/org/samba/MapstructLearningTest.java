@@ -64,6 +64,8 @@ public class MapstructLearningTest {
         assertEquals(destination.getDescription(), source.getDescription());
     }
 
+    ////////////////////////////////////////////////////////////////////////
+
     @Data
     @AllArgsConstructor
     static class VinylRecord {
@@ -105,6 +107,8 @@ public class MapstructLearningTest {
         assertEquals(1, shopProduct.getManufactured().getDayOfMonth());
     }
 
+    ////////////////////////////////////////////////////////////////////////
+
     @Mapper
     public interface VinylRecordMapper2 {
         // we only map the date automatically
@@ -126,6 +130,37 @@ public class MapstructLearningTest {
     @Test
     public void customMappings() {
         var mapper = Mappers.getMapper(VinylRecordMapper2.class);
+
+        VinylRecord vinylRecord = new VinylRecord(new Date(2017 - 1900, 8, 1), "Great Artist", "Best Of");
+        ShopProduct shopProduct = mapper.vinylRecordToShopProduct(vinylRecord);
+
+        assertEquals("Great Artist - Best Of", shopProduct.getMainTitle());
+        assertEquals("Music by Great Artist, album is called Best Of", shopProduct.getDescription());
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+
+    @Mapper
+    public interface VinylRecordMapper3 {
+        @Mappings({
+                @Mapping(target = "manufactured", source = "releaseYear"),
+                @Mapping(target = "mainTitle", expression = "java(MapstructLearningTest.mapMainTitle(vinylRecord))"),
+                @Mapping(target = "description", expression = "java(MapstructLearningTest.mapDescription(vinylRecord))")
+        })
+        ShopProduct vinylRecordToShopProduct(VinylRecord vinylRecord);
+    }
+
+    static String mapMainTitle(VinylRecord vinylRecord) {
+        return String.format("%s - %s", vinylRecord.getArtist(), vinylRecord.getTitle());
+    }
+
+    static String mapDescription(VinylRecord vinylRecord) {
+        return String.format("Music by %s, album is called %s", vinylRecord.getArtist(), vinylRecord.getTitle());
+    }
+
+    @Test
+    public void customMappingViaExpression() {
+        var mapper = Mappers.getMapper(VinylRecordMapper3.class);
 
         VinylRecord vinylRecord = new VinylRecord(new Date(2017 - 1900, 8, 1), "Great Artist", "Best Of");
         ShopProduct shopProduct = mapper.vinylRecordToShopProduct(vinylRecord);
