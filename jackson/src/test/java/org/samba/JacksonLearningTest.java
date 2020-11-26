@@ -102,6 +102,13 @@ public class JacksonLearningTest {
                 .forEach(it -> it.remove("age"));
 
         System.out.println(tree.toPrettyString());
+        // output:
+        //{
+        //  "name" : "Mahesh",
+        //  "father" : {
+        //    "name" : "Jonny"
+        //  }
+        //}
     }
 
     @Test
