@@ -16,6 +16,7 @@ import lombok.val;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -87,6 +88,20 @@ public class JacksonLearningTest {
         Student student = mapper.readValue(studentJson, Student.class);
         assertEquals("Mahesh", student.getName());
         assertEquals(21, student.getAge());
+    }
+
+    @Test
+    public void removePropertyRecursively() throws JsonProcessingException {
+        val studentJson = "{\"name\":\"Mahesh\", \"age\":21, \"father\": { \"name\":\"Jonny\", \"age\":55 }}";
+        val mapper = new ObjectMapper();
+        val tree = mapper.readTree(studentJson);
+
+        tree.findParents("age")
+                .stream()
+                .map(it -> (ObjectNode) it)
+                .forEach(it -> it.remove("age"));
+
+        System.out.println(tree.toPrettyString());
     }
 
     @Test
