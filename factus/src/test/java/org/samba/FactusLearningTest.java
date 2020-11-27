@@ -1,10 +1,8 @@
 package org.samba;
 
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.factcast.core.spec.FactSpec;
 import org.factcast.core.subscription.Subscription;
 import org.factcast.factus.Factus;
 import org.factcast.factus.Handler;
@@ -48,14 +46,14 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
     @Specification(ns = "test")
     static class AddressAdded implements EventObject {
 
-        private UUID aggregateId;
+        private UUID addressId;  // this is the aggregate ID
         private String name;
         private String street;
         private String town;
 
         @Override
         public Set<UUID> aggregateIds() {
-            return Set.of(aggregateId);
+            return Set.of(addressId);
         }
     }
 
@@ -65,12 +63,12 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
     @Specification(ns = "test")
     static class StreetChanged implements EventObject {
 
-        private UUID aggregateId;
+        private UUID addressId;   // this is the aggregate ID
         private String updatedStreet;
 
         @Override
         public Set<UUID> aggregateIds() {
-            return Set.of(aggregateId);
+            return Set.of(addressId);
         }
     }
 
@@ -165,7 +163,7 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
         factus.publish(List.of(firstEvent, secondEvent));
 
         // act
-        var secondEventAggregateId = secondEvent.getAggregateId();
+        var secondEventAggregateId = secondEvent.getAddressId();
         Optional<AddressAggregate> foundAddress = factus.find(AddressAggregate.class, secondEventAggregateId);
 
         // assert
@@ -292,7 +290,7 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
     // it can be used as a @Component to be application wide available.
     @Data
     static class AddressBookLocalManagedProjection extends LocalManagedProjection {
-        private List<AddressAdded> addressBook = new ArrayList<>(); // TODO concurrent list required here?
+        private List<AddressAdded> addressBook = Collections.synchronizedList(new ArrayList<>());
 
         @Handler
         void apply(AddressAdded receivedAddressAddedEvent) {
@@ -300,6 +298,68 @@ public class FactusLearningTest extends AbstractFactCastIntegrationTest {
         }
     }
 
+
+    @Test
+    public void filteringOfAggregateIdsViaPostProcess() {
+        // arrange
+        var address1 = new AddressAdded(
+                randomUUID(),
+                "Lou Reed",
+                "Dark Street 1",
+                "Dark town");
+
+        var address2 = new AddressAdded(
+                randomUUID(),
+                "Bat Man",
+                "Very Dark Street 42",
+                "Gotham City");
+
+        factus.publish(List.of(
+                address1,
+                address1,   // uups, duplicate. So we expect 2 events to be returned
+                address2
+        ));
+
+        // act
+        List<AddressAdded> result = getAddressAddedFor(address1.getAddressId());
+
+        // assert
+        assertEquals(2, result.size());
+        assertEquals(address1, result.get(0));
+        assertEquals(address1, result.get(1));
+    }
+
+    // create an instant local projection with just the events having addressId as aggregate ID
+    private List<AddressAdded> getAddressAddedFor(UUID addressId) {
+        var filteredManagedProjection = new FilteredAddressBookLocalManagedProjection(addressId);
+        factus.update(filteredManagedProjection);
+        return filteredManagedProjection.getAddressBook();
+    }
+
+    // only subscribe to "AddressAdded" events with the provided addressId (aggregate ID)
+    @RequiredArgsConstructor
+    static class FilteredAddressBookLocalManagedProjection extends LocalManagedProjection {
+        private final UUID addressId;
+        private List<AddressAdded> addressBook = Collections.synchronizedList(new ArrayList<>());
+
+        // make FactSpec more specific
+        @Override
+        public @NonNull List<FactSpec> postprocess(@NonNull List<FactSpec> specsAsDiscovered) {
+            // before: FactSpec(ns=test, type=AddressAdded, version=0, aggId=null, meta={}, jsFilterScript=null, filterScript=null)
+            specsAsDiscovered.forEach(factSpec -> factSpec.aggId(addressId));
+            // after: FactSpec(ns=test, type=AddressAdded, version=0, aggId=e08f3369-c134-4d1d-ad23-b1849360009c, meta={}, jsFilterScript=null, filterScript=null)
+            return specsAsDiscovered;
+        }
+
+        @Handler
+        void apply(AddressAdded receivedAddressAddedEvent) {
+            addressBook.add(receivedAddressAddedEvent);
+        }
+
+        public List<AddressAdded> getAddressBook() {
+            return Collections.unmodifiableList(addressBook);
+        }
+    }
 
     /////////////////////// Locally Subscribed Projection //////////////////////
 
