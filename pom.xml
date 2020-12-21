@@ -1,152 +1,110 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
-
-    <modelVersion>4.0.0</modelVersion>
-
-
-    <parent>
-
-
-        <groupId>org.springframework.boot</groupId>
-
-
-        <artifactId>spring-boot-starter-parent</artifactId>
-
-
-        <version>2.3.1.RELEASE</version>
-
-
-        <relativePath/>
-
-
-        <!-- lookup parent from repository -->
-
-
-    </parent>
-
-
-    <groupId>org.samba</groupId>
-
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+      
+  <modelVersion>4.0.0</modelVersion>
+      
+  <parent>
+            
+    <groupId>org.springframework.boot</groupId>
+            
+    <artifactId>spring-boot-starter-parent</artifactId>
+            
+    <version>2.3.1.RELEASE</version>
+            
+    <relativePath/>
+            
+    <!-- lookup parent from repository -->
+        
+  </parent>
+      
+  <groupId>org.samba</groupId>
+    
   <artifactId>learningtests</artifactId>
-
-
-    <version>1.0-SNAPSHOT</version>
-
-
-    <name>learningtests</name>
-
-
-    <packaging>pom</packaging>
-
-
-    <properties>
-
-
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-
-        <maven.compiler.source>11</maven.compiler.source>
-
-
-        <maven.compiler.target>11</maven.compiler.target>
-
-
-        <lombok.version>1.18.14</lombok.version>
-
-
-    </properties>
-
-
-    <dependencies>
-
-
-        <dependency>
-
-
-            <groupId>org.projectlombok</groupId>
-
-
-            <artifactId>lombok</artifactId>
-
-
-            <version>${lombok.version}</version>
-
-
-        </dependency>
-
-
-        <dependency>
-
-
-            <groupId>org.junit.jupiter</groupId>
-
-
-            <artifactId>junit-jupiter-api</artifactId>
-
-
-            <version>5.6.2</version>
-
-
-            <scope>test</scope>
-
-
-        </dependency>
-
-
-        <dependency>
-
-
-            <groupId>org.junit.jupiter</groupId>
-
-
-            <artifactId>junit-jupiter-engine</artifactId>
-
-
-            <version>5.6.2</version>
-
-
-            <scope>test</scope>
-
-
-        </dependency>
-
-      <dependency>
-        <groupId>org.assertj</groupId>
-        <artifactId>assertj-core-java8</artifactId>
-        <version>1.0.0m1</version>
-      </dependency>
-
-
-    </dependencies>
-
-
-    <modules>
-
-
-        <module>jackson</module>
-
-
-        <module>performance</module>
-
-
-        <module>factus</module>
-
-
-        <module>mapstruct</module>
-
-
-        <module>recordstore</module>
-
-
-        <module>lombok</module>
-
-
-        <module>redisson</module>
-
-    </modules>
-
-
+      
+  <version>1.0-SNAPSHOT</version>
+      
+  <name>learningtests</name>
+      
+  <packaging>pom</packaging>
+      
+  <properties>
+            
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+            
+    <maven.compiler.source>11</maven.compiler.source>
+            
+    <maven.compiler.target>11</maven.compiler.target>
+            
+    <lombok.version>1.18.14</lombok.version>
+        
+  </properties>
+      
+  <dependencies>
+            
+    <dependency>
+                  
+      <groupId>org.projectlombok</groupId>
+                  
+      <artifactId>lombok</artifactId>
+                  
+      <version>${lombok.version}</version>
+              
+    </dependency>
+            
+    <dependency>
+                  
+      <groupId>org.junit.jupiter</groupId>
+                  
+      <artifactId>junit-jupiter-api</artifactId>
+                  
+      <version>5.6.2</version>
+                  
+      <scope>test</scope>
+              
+    </dependency>
+            
+    <dependency>
+                  
+      <groupId>org.junit.jupiter</groupId>
+                  
+      <artifactId>junit-jupiter-engine</artifactId>
+                  
+      <version>5.6.2</version>
+                  
+      <scope>test</scope>
+              
+    </dependency>
+          
+    <dependency>
+              
+      <groupId>org.assertj</groupId>
+              
+      <artifactId>assertj-core-java8</artifactId>
+              
+      <version>1.0.0m1</version>
+            
+    </dependency>
+        
+  </dependencies>
+      
+  <modules>
+            
+    <module>jackson</module>
+            
+    <module>performance</module>
+            
+    <module>factus</module>
+            
+    <module>mapstruct</module>
+            
+    <module>recordstore</module>
+            
+    <module>lombok</module>
+            
+    <module>redisson</module>
+          
+    <module>javacore</module>
+      
+  </modules>
+  
 </project>
