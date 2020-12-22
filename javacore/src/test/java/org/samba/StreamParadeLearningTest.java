@@ -4,10 +4,8 @@ import lombok.Data;
 import lombok.Value;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -119,7 +117,27 @@ public class StreamParadeLearningTest {
     }
 
     @Test
-    public void addingValueObjectsViaReduce() {
+    public void allMatch() {
+        var allEvent = List.of(2, 4, 6).stream()
+                .allMatch(it -> it % 2 == 0);
+
+        assertThat(allEvent).isTrue();
+    }
+
+
+    // pick just one of the stream elements without a guarantee which one exactly
+    @Test
+    public void findAny() {
+        Optional<String> result = Stream.of("house", "chair", "table")
+                .findAny();
+
+        assertThat(result).isPresent();
+        System.out.println(result.get());
+    }
+
+
+    @Test
+    public void summingValueObjectsViaReduce() {
         var sumOfPositiveTemperatures = Stream.of(
                 new Temperature(10),
                 new Temperature(-10),
@@ -131,8 +149,93 @@ public class StreamParadeLearningTest {
         assertThat(sumOfPositiveTemperatures).isEqualTo(new Temperature(14));
     }
 
+    @Test
+    public void summingValueObjectsViaReduceWithInitialValue() {
+        var baseTemperature = new Temperature(42);
+        var sum = Stream.of(
+                new Temperature(10),
+                new Temperature(4))
+                .reduce(baseTemperature, Temperature::plus);
+
+        assertThat(sum).isEqualTo(new Temperature(56));
+    }
+
+
+    // throws IllegalStateException on duplicate keys
+    @Test
+    public void mapOfStudentsByLastName() {
+        Map<String, Student> studentByName = Stream.of(
+                new Student("Ronny", "Schmidt"),
+                new Student("Petra", "Müller"))
+                .collect(Collectors.toMap(Student::getLastName, Function.identity()));
+
+        assertThat(studentByName).containsExactly(
+                entry("Schmidt", new Student("Ronny", "Schmidt")),
+                entry("Müller", new Student("Petra", "Müller")));
+    }
+
+
+    // allow multiple keys
+    // also see: https://stackoverflow.com/questions/45231351/differences-between-collectors-tomap-and-collectors-groupingby-to-collect-in/45231743
+    @Test
+    public void groupStudentsByLastName() {
+        Map<String, List<Student>> studentByLastname = Stream.of(
+                new Student("Ronny", "Schmidt"),
+                new Student("Klaus", "Schmidt"),
+                new Student("Petra", "Müller"))
+                .collect(Collectors.groupingBy(Student::getLastName));
+
+        assertThat(studentByLastname.get("Müller")).containsExactly(
+                new Student("Petra", "Müller"));
+
+        assertThat(studentByLastname.get("Schmidt")).containsExactly(
+                new Student("Ronny", "Schmidt"), new Student("Klaus", "Schmidt"));
+    }
+
+    @Test
+    public void joinStringViaStream() {
+        String result = Stream.of("A", "B", "C").collect(Collectors.joining(","));
+        assertThat(result).isEqualTo("A,B,C");
+    }
+
+    @Test
+    public void reverseList() {
+        var result = Stream.of(1, 2, 3)
+                // initial implementation, IntelliJ suggested "reverseOrder" replacement
+                //.sorted((i1, i2) -> i2.compareTo(i1))
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toUnmodifiableList());
+
+        assertThat(result).containsExactly(3,2,1);
+    }
+
+    @Test
+    public void minViaComparableInterface() {
+        var coldestTemperature = Stream.of(
+                new Temperature(10),
+                new Temperature(-10),
+                new Temperature(4))
+                .min(Temperature::compareTo)
+                .orElseThrow();
+
+        assertThat(coldestTemperature).isEqualTo(new Temperature(-10));
+    }
+
+
+    @Test
+    public void maxViaComparingLambda() {
+        var studentLastInAlphabet = Stream.of(
+                new Student("Anton", "Auer"),
+                new Student("Zoe", "Zappa"))
+                .max(Comparator.comparing(Student::getLastName))
+                .orElseThrow();
+
+        assertThat(studentLastInAlphabet).isEqualTo(new Student("Zoe", "Zappa"));
+    }
+
+
     @Value
-    static class Temperature {
+    static class Temperature implements Comparable<Temperature> {
         private final double value;
 
         public Temperature(double value) {
@@ -141,6 +244,11 @@ public class StreamParadeLearningTest {
 
         public Temperature plus(Temperature summand) {
             return new Temperature(value + summand.getValue());
+        }
+
+        @Override
+        public int compareTo(Temperature other) {
+            return Double.compare(this.value, other.value);
         }
     }
 }
