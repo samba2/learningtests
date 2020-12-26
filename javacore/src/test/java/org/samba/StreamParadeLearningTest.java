@@ -1,10 +1,13 @@
 package org.samba;
 
+import com.google.common.collect.Streams;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Value;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -12,6 +15,8 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
 
+
+// more examples for groupingBy: https://www.baeldung.com/java-groupingby-collector
 
 public class StreamParadeLearningTest {
 
@@ -57,7 +62,7 @@ public class StreamParadeLearningTest {
                 .distinct()  // remove duplicates
                 .collect(Collectors.toList());
 
-        assertThat(result).containsExactly(1, 2, 5, 6);
+        assertThat(result).contains(1, 2, 5, 6);
     }
 
     @Test
@@ -89,6 +94,15 @@ public class StreamParadeLearningTest {
 
         assertThat(result).containsExactly(4, 5);
     }
+
+    @Test
+    public void findLast() {
+        Optional<Integer> lastNumber = Streams.findLast(
+                Stream.of(1, 2, 3));
+
+        assertThat(lastNumber.get()).isEqualTo(3);
+    }
+
 
     @Test
     public void count() {
@@ -160,6 +174,17 @@ public class StreamParadeLearningTest {
         assertThat(sum).isEqualTo(new Temperature(56));
     }
 
+    @Test
+    public void summingUp() {
+        Double sum = Stream.of(
+                new Temperature(10),
+                new Temperature(5),
+                new Temperature(4))
+                .collect(Collectors.summingDouble(Temperature::getValue));
+
+        assertThat(sum).isEqualTo(19);
+    }
+
 
     // throws IllegalStateException on duplicate keys
     @Test
@@ -172,6 +197,34 @@ public class StreamParadeLearningTest {
         assertThat(studentByName).containsExactly(
                 entry("Schmidt", new Student("Ronny", "Schmidt")),
                 entry("Müller", new Student("Petra", "Müller")));
+    }
+
+    @Test
+    public void mapWithSimpleLambdaAsValue() {
+        Map<String, String> studentByName = Stream.of(
+                new Student("Ronny", "Schmidt"),
+                new Student("Petra", "Müller"))
+                .collect(Collectors.toMap(Student::getLastName, it -> it.getFirstName().toUpperCase()));
+
+        assertThat(studentByName).containsExactly(
+                entry("Schmidt", "RONNY"),
+                entry("Müller", "PETRA"));
+    }
+
+    @Test
+    public void obscureCollectionToHashmap() {
+        HashMap<Object, Object> result = Stream.of(
+                new Student("Ronny", "Schmidt"),
+                new Student("Petra", "Müller"))
+                .collect(HashMap::new,
+                        (hashMap, student) -> hashMap.put(
+                                student.getLastName(),
+                                student.getFirstName()),
+                        HashMap::putAll);
+
+        assertThat(result).containsExactly(
+                entry("Schmidt", "Ronny"),
+                entry("Müller", "Petra"));
     }
 
 
@@ -193,6 +246,75 @@ public class StreamParadeLearningTest {
     }
 
     @Test
+    public void countOccurrence() {
+        Map<String, Long> characterOccurrence = Stream.of(
+                "A", "A",
+                "B",
+                "C", "C", "C")
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+        assertThat(characterOccurrence).containsExactly(
+                entry("A", 2L),
+                entry("B", 1L),
+                entry("C", 3L));
+    }
+
+    @Test
+    public void groupByCounting() {
+        var sum = Stream.of("Ale", "Ale", "Lager", "Ale")
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+        assertThat(sum).containsExactly(entry("Lager", 1L), entry("Ale", 3L));
+    }
+
+    @Test
+    public void groupingYoungestStudentByGender() {
+        Map<Gender, Optional<Student2>> youngestStudentByGender = Stream.of(
+                new Student2("Ronny", "Schmidt", 40, Gender.M),
+                new Student2("Susi", "Sorglos", 32, Gender.F),
+                new Student2("Klaus", "Schmidt", 55, Gender.M),
+                new Student2("Petra", "Müller", 62, Gender.F))
+                .collect(Collectors.groupingBy(Student2::getGender,
+                        Collectors.minBy(Comparator.comparing(Student2::getAge))));
+
+        assertThat(youngestStudentByGender)
+                .hasSize(2)
+                .contains(
+                        entry(Gender.M, Optional.of(new Student2("Ronny", "Schmidt", 40, Gender.M))),
+                        entry(Gender.F, Optional.of(new Student2("Susi", "Sorglos", 32, Gender.F))));
+    }
+
+    @Test
+    public void studentsPartitionedByAge() {
+        Map<Boolean, List<Student2>> studentsPartitionedByAge = Stream.of(
+                new Student2("Ronny", "Schmidt", 40, Gender.M),
+                new Student2("Susi", "Sorglos", 32, Gender.F),
+                new Student2("Klaus", "Schmidt", 55, Gender.M),
+                new Student2("Petra", "Müller", 62, Gender.F))
+                .collect(Collectors.partitioningBy(it -> it.age >= 40));
+
+        assertThat(studentsPartitionedByAge.get(true))
+                .hasSize(3)
+                .extracting("firstName")
+                .containsExactly("Ronny", "Klaus", "Petra");
+
+        assertThat(studentsPartitionedByAge.get(false))
+                .hasSize(1)
+                .extracting("firstName")
+                .containsExactly("Susi");
+    }
+
+    @Data
+    static class Student2 {
+        private final String firstName;
+        private final String lastName;
+        private final int age;
+        private final Gender gender;
+    }
+
+    static enum Gender {M, F, D}
+
+    @Test
     public void joinStringViaStream() {
         String result = Stream.of("A", "B", "C").collect(Collectors.joining(","));
         assertThat(result).isEqualTo("A,B,C");
@@ -206,7 +328,7 @@ public class StreamParadeLearningTest {
                 .sorted(Comparator.reverseOrder())
                 .collect(Collectors.toUnmodifiableList());
 
-        assertThat(result).containsExactly(3,2,1);
+        assertThat(result).containsExactly(3, 2, 1);
     }
 
     @Test
@@ -233,14 +355,82 @@ public class StreamParadeLearningTest {
         assertThat(studentLastInAlphabet).isEqualTo(new Student("Zoe", "Zappa"));
     }
 
+    // there is Stream.concat and Streams.concat (guava) with apparently identical functionality
+    @Test
+    public void concatenateTwoStreams() {
+        List<String> result = Stream.concat(
+                Stream.of("A", "B"),
+                Stream.of("X", "Y", "Z"))
+                .collect(Collectors.toList());
+
+        assertThat(result).containsExactly("A", "B", "X", "Y", "Z");
+    }
+
+    @Test
+    public void collectToAlternativeCollectionType() {
+        Stream.of(1, 2, 3)
+                .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
+    }
+
+    // "The resulting stream will only be as long as the shorter of the two input streams;
+    // if one stream is longer, its extra elements will be ignored."
+    @Test
+    public void zipToPrimitiveLists() {
+        List<Integer> result = Streams.zip(
+                Stream.of(10, 20, 30),
+                Stream.of(1, 2, 3),
+                (i, j) -> i + j)
+                .collect(Collectors.toList());
+
+        assertThat(result).containsExactly(11, 22, 33);
+    }
+
+    @Test
+    public void zipToListOfNewObjects() {
+        List<Student> students = Streams.zip(
+                Stream.of("Ronny", "Petra"),
+                Stream.of("Schmidt", "Mueller"),
+                Student::new)
+                .collect(Collectors.toList());
+
+        assertThat(students).containsExactly(
+                new Student("Ronny", "Schmidt"),
+                new Student("Petra", "Mueller"));
+    }
+
+    // saves one line comapred to Streams.zip + stream forEach
+    @Test
+    public void pairWiseForEach() {
+        Streams.forEachPair(
+                Stream.of(10, 20, 30),
+                Stream.of(1, 2, 3),
+                (i, j) -> System.out.println(String.format("%d + %d = %d", i, j, i + j)));
+
+        // output
+        // 10 + 1 = 11
+        // 20 + 2 = 22
+        // 30 + 3 = 33
+    }
+
+    @Test
+    public void mapWithIndex() {
+        Streams.mapWithIndex(
+                Stream.of("A", "B", "C"),
+                // intentionally explicit, could be also a method reference
+                (character, index) -> new AbstractMap.SimpleEntry(character, index))
+                .forEach(pair -> System.out.println(String.format("%s %d", pair.getKey(), pair.getValue())));
+
+        // output:
+        // A 0
+        // B 1
+        // C 2
+    }
+
 
     @Value
+    @AllArgsConstructor
     static class Temperature implements Comparable<Temperature> {
         private final double value;
-
-        public Temperature(double value) {
-            this.value = value;
-        }
 
         public Temperature plus(Temperature summand) {
             return new Temperature(value + summand.getValue());
