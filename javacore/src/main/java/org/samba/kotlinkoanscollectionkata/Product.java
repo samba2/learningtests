@@ -9,6 +9,6 @@ public class Product {
 
     @Override
     public String toString() {
-        return String.format("'%s' for %d", name, price);
+        return String.format("'%s' for %s", name, price);
     }
 }

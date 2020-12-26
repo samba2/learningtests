@@ -15,7 +15,7 @@ public class TestShop {
     Product idea = new Product("IntelliJ IDEA Ultimate", 199.0);
     Product reSharper = new Product("ReSharper", 149.0);
     Product dotTrace = new Product("DotTrace", 159.0);
-    Product dotMemory = new Product("DotTrace", 129.0);
+    Product dotMemory = new Product("DotMemory", 129.0);
     Product dotCover = new Product("DotCover", 99.0);
     Product appCode = new Product("AppCode", 99.0);
     Product phpStorm = new Product("PhpStorm", 99.0);
