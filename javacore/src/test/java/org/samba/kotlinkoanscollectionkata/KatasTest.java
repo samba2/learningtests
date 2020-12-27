@@ -2,10 +2,9 @@ package org.samba.kotlinkoanscollectionkata;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.*;
@@ -164,6 +163,61 @@ class KatasTest {
                 .sum();
     }
 
-    // TODO continue here: https://play.kotlinlang.org/koans/Collections/GroupBy/Task.kt
+    @Test
+    public void groupCustomersByCity() {
+         // Return a map of the customers living in each city
+        var result = groupCustomersByCity(shop);
+        assertThat(result).hasSize(5);
 
+        assertThat(result.get(Tokyo))
+                .extracting("name")
+                .containsExactly("Asuka");
+
+        assertThat(result.get(Canberra))
+                .extracting("name")
+                .containsExactly("Lucas", "Cooper");
+    }
+
+    private static Map<City, List<Customer>> groupCustomersByCity(Shop shop) {
+        return shop.getCustomers().stream()
+                .collect(Collectors.groupingBy(Customer::getCity));
+    }
+
+    @Test
+    public void partitionBy() {
+        // Return customers who have more undelivered orders than delivered
+        assertThat(getCustomersWithMoreUndeliveredOrdersThanDelivered2(shop))
+                .hasSize(1)
+                .extracting("name")
+                .containsExactly("Reka");
+    }
+
+    // follows the proposed implementation
+    private static Set<Customer> getCustomersWithMoreUndeliveredOrdersThanDelivered2(Shop shop) {
+        return shop.getCustomers().stream()
+                .filter(customer -> {
+                    var partitionedOrders = customer.getOrders().stream()
+                            .collect(Collectors.partitioningBy(Order::isDelivered));
+                    return partitionedOrders.get(false).size() > partitionedOrders.get(true).size();
+                })
+                .collect(Collectors.toSet());
+    }
+
+    // this was way to complicated. left this because of the nicely extracted functions
+    private static Set<Customer> getCustomersWithMoreUndeliveredOrdersThanDelivered(Shop shop) {
+        Function<Customer, Long> notDeliveredCount = customer -> customer.getOrders().stream()
+                .filter(order -> order.isDelivered() == false)
+                .count();
+
+        Function<Customer, Long> deliveredCount = customer -> customer.getOrders().stream()
+                .filter(order -> order.isDelivered())
+                .count();
+
+        Predicate<Customer> customerPredicate = customer -> notDeliveredCount.apply(customer) > deliveredCount.apply(customer);
+
+        return shop.getCustomers().stream()
+                .collect(Collectors.partitioningBy(customerPredicate, Collectors.toSet())).get(true);
+    }
+
+    // TODO https://play.kotlinlang.org/koans/Collections/Fold/Task.kt
 }
