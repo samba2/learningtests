@@ -1,5 +1,6 @@
 package org.samba.kotlinkoanscollectionkata;
 
+import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -219,5 +220,37 @@ class KatasTest {
                 .collect(Collectors.partitioningBy(customerPredicate, Collectors.toSet())).get(true);
     }
 
-    // TODO https://play.kotlinlang.org/koans/Collections/Fold/Task.kt
+    @Test
+    public void reduce() {
+         // Return the set of products that were ordered by every customer
+        assertThat(getSetOfProductsOrderedByEveryCustomer(shop)).isEmpty();
+    }
+
+    // follows the suggested implementation
+    // algorithm:
+    // - start with a set of all products ever ordered by any customer
+    // - at each reduction step, calculate the common products of the previous step and the current. Take the outcome
+    //   as the input (= new "commonProducts") for the next reduction step. For the first step this is the full "allProducts" set.
+    // - with each reduction step the set of common products is either untouched or decreasing
+    // - the third combiner argument is needed since "commonProducts" and "customer" are of different type.
+    //   See here for details (2nd answer): https://stackoverflow.com/questions/24308146/why-is-a-combiner-needed-for-reduce-method-that-converts-type-in-java-8
+    private static Set<Product> getSetOfProductsOrderedByEveryCustomer(Shop shop) {
+        return shop.getCustomers().stream()
+                .reduce(getAllProducts(shop),
+                        (commonProducts, customer) -> Sets.intersection(commonProducts, getCustomerProducts(customer)),
+                        Sets::union);
+    }
+
+    private static Set<Product> getAllProducts(Shop shop) {
+        return shop.getCustomers().stream()
+                .flatMap(customer -> customer.getOrders().stream())
+                .flatMap(order -> order.getProducts().stream())
+                .collect(Collectors.toSet());
+    }
+
+    private static Set<Product> getCustomerProducts(Customer customer) {
+        return customer.getOrders().stream()
+                .flatMap(order -> order.getProducts().stream())
+                .collect(Collectors.toSet());
+    }
 }
