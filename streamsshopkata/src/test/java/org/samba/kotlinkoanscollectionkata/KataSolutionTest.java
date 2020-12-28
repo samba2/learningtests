@@ -10,13 +10,14 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.samba.kotlinkoanscollectionkata.TestShop.*;
 
-class KatasTest {
+class KataSolutionTest {
 
     @Test
     public void introduction() {
         // Get a set of all shop customers
-        Assertions.assertThat(getSetOfCustomers(TestShop.shop))
+        Assertions.assertThat(getSetOfCustomers(shop))
                 .isNotEmpty()
                 .hasSize(6);
     }
@@ -26,19 +27,24 @@ class KatasTest {
     }
 
     @Test
-    public void filterAndMap() {
+    public void filterAndMap1() {
         // Return the set of cities the customers are from
-        Set<City> cities = TestShop.shop.getCustomers().stream()
-                .map(it -> it.getCity())
-                .collect(Collectors.toSet());
-
-        Assertions.assertThat(cities)
+        Assertions.assertThat(getCitiesCustomersAreFrom(shop))
                 .hasSize(5)
                 .extracting("name")
                 .contains("Tokyo", "Ankara", "Vancouver", "Budapest", "Canberra");
+    }
 
+    private static Set<City> getCitiesCustomersAreFrom(Shop shop) {
+        return shop.getCustomers().stream()
+                .map(it -> it.getCity())
+                .collect(Collectors.toSet());
+    }
+
+    @Test
+    public void filterAndMap2() {
         // Return a list of the customers who live in the given city
-        Assertions.assertThat(getCustomersFrom(TestShop.shop, new City("Budapest")))
+        Assertions.assertThat(getCustomersFrom(shop, new City("Budapest")))
                 .hasSize(1)
                 .extracting("name")
                 .containsExactly("Reka");
@@ -50,21 +56,20 @@ class KatasTest {
                 .collect(Collectors.toList());
     }
 
-
     @Test
     public void allAnyAndOrderPredicates() {
         // Return true if all customers are from the given city
-        assertThat(checkAllCustomersAreFrom(TestShop.shop, new City("Tokyo"))).isFalse();
+        assertThat(checkAllCustomersAreFrom(shop, new City("Tokyo"))).isFalse();
 
         // Return true if there is at least one customer from the given city
-        assertThat(hasCustomerFrom(TestShop.shop, new City("Tokyo"))).isTrue();
+        assertThat(hasCustomerFrom(shop, new City("Tokyo"))).isTrue();
 
         // Return the number of customers from the given city
-        assertThat(countCustomersFrom(TestShop.shop, new City("Tokyo"))).isEqualTo(1L);
+        assertThat(countCustomersFrom(shop, new City("Tokyo"))).isEqualTo(1L);
 
         // Return a customer who lives in the given city, or Optional.empty if there is none
-        Assertions.assertThat(findAnyCustomerFrom(TestShop.shop, new City("Tokyo"))).isPresent();
-        assertThat(findAnyCustomerFrom(TestShop.shop, new City("Tokyo")).get().getName()).isEqualTo("Asuka");
+        Assertions.assertThat(findAnyCustomerFrom(shop, new City("Tokyo"))).isPresent();
+        assertThat(findAnyCustomerFrom(shop, new City("Tokyo")).get().getName()).isEqualTo("Asuka");
     }
 
     private static boolean checkAllCustomersAreFrom(Shop shop, City city) {
@@ -92,13 +97,13 @@ class KatasTest {
     @Test
     public void flatMap() {
         // Return all products this customer has ordered
-        Assertions.assertThat(orderedProducts(TestShop.shop.getCustomers().get(0)))
+        Assertions.assertThat(orderedProducts(shop.getCustomers().get(0)))
                 .hasSize(4)
                 .extracting("name")
                 .containsExactly("ReSharper", "ReSharper", "DotMemory", "DotTrace");
 
         // Return all products that were ordered by at least one customer
-        Assertions.assertThat(allOrderedProducts(TestShop.shop))
+        Assertions.assertThat(allOrderedProducts(shop))
                 .hasSize(6)
                 .extracting("name")
                 .containsExactly("RubyMine", "IntelliJ IDEA Ultimate", "DotMemory", "DotTrace", "WebStorm", "ReSharper");
@@ -120,10 +125,10 @@ class KatasTest {
     @Test
     public void maxMin() {
         // Return a customer whose order count is the highest among all customers
-        assertThat(getCustomerWithMaximumNumberOfOrders(TestShop.shop).get().getName()).isEqualTo("Reka");
+        assertThat(getCustomerWithMaximumNumberOfOrders(shop).get().getName()).isEqualTo("Reka");
 
         // Return the most expensive product which has been ordered
-        assertThat(getMostExpensiveOrderedProduct(TestShop.shop.getCustomers().get(0)).get().getName())
+        assertThat(getMostExpensiveOrderedProduct(shop.getCustomers().get(0)).get().getName())
                 .isEqualTo("DotTrace");
 
     }
@@ -142,7 +147,7 @@ class KatasTest {
     @Test
     public void sort() {
         // Return a list of customers, sorted by the ascending number of orders they made
-        var result = getCustomersSortedByNumberOfOrders(TestShop.shop);
+        var result = getCustomersSortedByNumberOfOrders(shop);
         assertThat(result.get(0).getName()).isEqualTo("Cooper");
         assertThat(result.get(5).getName()).isEqualTo("Reka");
 
@@ -158,7 +163,7 @@ class KatasTest {
     public void sum() {
          // Return the sum of prices of all products that a customer has ordered.
         // Note: the customer may order the same product for several times.
-        assertThat(getTotalOrderPrice(TestShop.shop.getCustomers().get(0)))
+        assertThat(getTotalOrderPrice(shop.getCustomers().get(0)))
                 .isEqualTo(586);
     }
 
@@ -172,7 +177,7 @@ class KatasTest {
     @Test
     public void groupCustomersByCity() {
          // Return a map of the customers living in each city
-        var result = groupCustomersByCity(TestShop.shop);
+        var result = groupCustomersByCity(shop);
         Assertions.assertThat(result).hasSize(5);
 
         Assertions.assertThat(result.get(TestShop.Tokyo))
@@ -192,7 +197,7 @@ class KatasTest {
     @Test
     public void partitionBy() {
         // Return customers who have more undelivered orders than delivered
-        Assertions.assertThat(getCustomersWithMoreUndeliveredOrdersThanDelivered2(TestShop.shop))
+        Assertions.assertThat(getCustomersWithMoreUndeliveredOrdersThanDelivered2(shop))
                 .hasSize(1)
                 .extracting("name")
                 .containsExactly("Reka");
@@ -228,8 +233,8 @@ class KatasTest {
     @Test
     public void reduce() {
          // Return the set of products that were ordered by every customer
-        Assertions.assertThat(getSetOfProductsOrderedByEveryCustomer(TestShop.shop)).isEmpty();
-        Assertions.assertThat(getSetOfProductsOrderedByEveryCustomer2(TestShop.shop)).isEmpty();
+        Assertions.assertThat(getSetOfProductsOrderedByEveryCustomer(shop)).isEmpty();
+        Assertions.assertThat(getSetOfProductsOrderedByEveryCustomer2(shop)).isEmpty();
     }
 
 
@@ -295,8 +300,8 @@ class KatasTest {
     public void compoundTask2() {
         // Return how many times the given product was ordered.
         // Note: a customer may order the same product for several times.
-        assertThat(getNumberOfTimesProductWasOrdered(TestShop.shop, TestShop.rubyMine)).isEqualTo(1);
-        assertThat(getNumberOfTimesProductWasOrdered(TestShop.shop, TestShop.reSharper)).isEqualTo(3);
+        assertThat(getNumberOfTimesProductWasOrdered(shop, TestShop.rubyMine)).isEqualTo(1);
+        assertThat(getNumberOfTimesProductWasOrdered(shop, TestShop.reSharper)).isEqualTo(3);
     }
 
     private static long getNumberOfTimesProductWasOrdered(Shop shop, Product product) {
