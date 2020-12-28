@@ -233,7 +233,7 @@ class KatasTest {
     // - start with a set of all products ever ordered by any customer
     // - at each reduction step, calculate the common products of the previous step and the current. Take the outcome
     //   as the input (= new "commonProducts") for the next reduction step. For the first step this is the full "allProducts" set.
-    // - with each reduction step the set of common products is either untouched or decreasing
+    // - with each reduction step the set of common products is either untouched or decreased
     // - the third combiner argument is needed since "commonProducts" and "customer" are of different type.
     //   See here for details (2nd answer): https://stackoverflow.com/questions/24308146/why-is-a-combiner-needed-for-reduce-method-that-converts-type-in-java-8
     private static Set<Product> getSetOfProductsOrderedByEveryCustomer(Shop shop) {
@@ -263,4 +263,43 @@ class KatasTest {
                 .flatMap(order -> order.getProducts().stream())
                 .collect(Collectors.toSet());
     }
+
+    @Test
+    public void compoundTask1() {
+         // Return the most expensive product among all delivered products
+        // (use the Order.isDelivered flag)
+        var testCustomer = customer(reka, Budapest,
+                order(false, idea),
+                order(false, idea),
+                order(reSharper),
+                order(reSharper, dotMemory, dotTrace, teamCity));
+
+        assertThat(getMostExpensiveDeliveredProduct(testCustomer))
+                .isPresent()
+                .contains(teamCity);
+    }
+
+    private static Optional<Product> getMostExpensiveDeliveredProduct(Customer customer) {
+        return customer.getOrders().stream()
+                .filter(Order::isDelivered)
+                .flatMap(order -> order.getProducts().stream())
+                .max(Comparator.comparing(Product::getPrice));
+    }
+
+    @Test
+    public void compoundTask2() {
+        // Return how many times the given product was ordered.
+        // Note: a customer may order the same product for several times.
+        assertThat(getNumberOfTimesProductWasOrdered(shop, rubyMine)).isEqualTo(1);
+        assertThat(getNumberOfTimesProductWasOrdered(shop, reSharper)).isEqualTo(3);
+    }
+
+    private static long getNumberOfTimesProductWasOrdered(Shop shop, Product product) {
+        return shop.getCustomers().stream()
+                .flatMap(customer -> customer.getOrders().stream())
+                .flatMap(order -> order.getProducts().stream())
+                .filter(product1 -> product1.equals(product))
+                .count();
+    }
+
 }
