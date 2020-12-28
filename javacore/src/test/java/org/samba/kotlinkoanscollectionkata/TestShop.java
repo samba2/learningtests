@@ -3,10 +3,6 @@ package org.samba.kotlinkoanscollectionkata;
 import lombok.experimental.UtilityClass;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @UtilityClass
 public class TestShop {
@@ -77,28 +73,4 @@ public class TestShop {
                     order(idea)
             )
     );
-
-    public final Map<String, Customer> customers = shop.getCustomers().stream()
-            .collect(Collectors.toMap(Customer::getName, Function.identity()));
-
-    public final Set orderedProducts = Set.of(idea, reSharper, dotTrace, dotMemory, rubyMine, webStorm);
-
-    // TODO
-    public static void main(String[] args) {
-        var a = Map.of(
-                "Canberra", List.of(lucas, cooper),
-                "Vancouver", List.of(nathan),
-                "Budapest", List.of(reka),
-                "Ankara", List.of(bajram),
-                "Tokyo", List.of(asuka));
-    }
-
-    //val groupedByCities = mapOf(
-    //        Canberra to listOf(lucas, cooper),
-    //        Vancouver to listOf(nathan),
-    //        Budapest to listOf(reka),
-    //        Ankara to listOf(bajram),
-    //        Tokyo to listOf(asuka)
-    //).mapValues { it.value.map { name -> customers[name] } }
-
 }

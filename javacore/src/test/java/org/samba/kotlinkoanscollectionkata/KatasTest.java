@@ -16,8 +16,13 @@ class KatasTest {
     @Test
     public void introduction() {
         // Get a set of all shop customers
-        var result = Set.copyOf(shop.getCustomers());
-        System.out.println(result);
+        assertThat(getSetOfCustomers(shop))
+                .isNotEmpty()
+                .hasSize(6);
+    }
+
+    private static Set<Customer> getSetOfCustomers(Shop shop) {
+        return Set.copyOf(shop.getCustomers());
     }
 
     @Test
