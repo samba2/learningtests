@@ -224,7 +224,9 @@ class KatasTest {
     public void reduce() {
          // Return the set of products that were ordered by every customer
         assertThat(getSetOfProductsOrderedByEveryCustomer(shop)).isEmpty();
+        assertThat(getSetOfProductsOrderedByEveryCustomer2(shop)).isEmpty();
     }
+
 
     // follows the suggested implementation
     // algorithm:
@@ -239,6 +241,14 @@ class KatasTest {
                 .reduce(getAllProducts(shop),
                         (commonProducts, customer) -> Sets.intersection(commonProducts, getCustomerProducts(customer)),
                         Sets::union);
+    }
+
+    // less funky implementation using local state
+    private static Set<Product> getSetOfProductsOrderedByEveryCustomer2(Shop shop) {
+        var allProducts = getAllProducts(shop);
+        shop.getCustomers().stream()
+                .forEach(customer -> allProducts.retainAll(getCustomerProducts(customer)));
+        return allProducts;
     }
 
     private static Set<Product> getAllProducts(Shop shop) {
