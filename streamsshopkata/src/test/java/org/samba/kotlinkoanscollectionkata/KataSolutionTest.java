@@ -214,22 +214,6 @@ class KataSolutionTest {
                 .collect(Collectors.toSet());
     }
 
-    // this was way to complicated. left this because of the nicely extracted functions
-    private static Set<Customer> getCustomersWithMoreUndeliveredOrdersThanDelivered(Shop shop) {
-        Function<Customer, Long> notDeliveredCount = customer -> customer.getOrders().stream()
-                .filter(order -> order.isDelivered() == false)
-                .count();
-
-        Function<Customer, Long> deliveredCount = customer -> customer.getOrders().stream()
-                .filter(order -> order.isDelivered())
-                .count();
-
-        Predicate<Customer> customerPredicate = customer -> notDeliveredCount.apply(customer) > deliveredCount.apply(customer);
-
-        return shop.getCustomers().stream()
-                .collect(Collectors.partitioningBy(customerPredicate, Collectors.toSet())).get(true);
-    }
-
     @Test
     public void reduce() {
          // Return the set of products that were ordered by every customer
