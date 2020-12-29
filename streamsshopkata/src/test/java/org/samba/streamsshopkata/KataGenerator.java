@@ -1,7 +1,6 @@
 package org.samba.streamsshopkata;
 
 import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
@@ -12,7 +11,6 @@ import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.github.javaparser.ast.visitor.Visitable;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,42 +19,55 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class KataGenerator {
+
+    private static final String targetClass = "KataTest";
+    private static final String sourceFile = "KataSolutionTest.java";
+    private static final String basePath = "streamsshopkata/src/test/java/org/samba/streamsshopkata/";
+
+    private static final List<String> importsBlackList = List.of(
+            "com.google.common.collect",
+            "java.util.stream");
+
     public static void main(String[] args) throws IOException {
-        CompilationUnit cu = StaticJavaParser.parse(new File("streamsshopkata/src/test/java/org/samba/streamsshopkata/KataSolutionTest.java"));
+        var cu = StaticJavaParser.parse(Path.of(basePath, sourceFile).toFile());
         LexicalPreservingPrinter.setup(cu);
 
         ModifierVisitor<?> solutionCleanerVisitor = new SolutionCleanerVisitor();
         solutionCleanerVisitor.visit(cu, null);
 
-        // fix lexicical printer keeping "IGNORE" comments
-        String out = LexicalPreservingPrinter.print(cu);
-        String filtered = Arrays.stream(out.split("\n"))
+        // fix lexical printer keeping "IGNORE" comments
+        var out = Arrays.stream(LexicalPreservingPrinter.print(cu).split("\n"))
                 .filter(s -> !s.contains("IGNORE"))
                 .collect(Collectors.joining("\n"));
 
-        Files.writeString(Path.of("streamsshopkata/src/test/java/org/samba/streamsshopkata/KataTest.java"), filtered);
+        var outputPath = Path.of(basePath, targetClass + ".java");
+        Files.writeString(outputPath, out);
+        System.out.println("\nPrepared Kata in " + outputPath);
     }
 
     private static class SolutionCleanerVisitor extends ModifierVisitor<Void> {
 
         @Override
         public Node visit(ImportDeclaration id, Void arg) {
-            var IMPORTS_TO_BE_REMOVED = List.of(
-                    "com.google.common.collect",
-                    "java.util.stream");
             super.visit(id, arg);
-
-            for (String pattern : IMPORTS_TO_BE_REMOVED) {
-                if (id.getNameAsString().contains(pattern)) return null;
+            if (isInImportsBlackList(id.getNameAsString())) {
+                return null;
+            } else {
+                return id;
             }
+        }
 
-            return id;
+        private boolean isInImportsBlackList(String importDeclaration) {
+            for (String pattern : importsBlackList) {
+                if (importDeclaration.contains(pattern)) return true;
+            }
+            return false;
         }
 
         @Override
         public Visitable visit(ClassOrInterfaceDeclaration cd, Void arg) {
             super.visit(cd, arg);
-            cd.setName("KataTest");
+            cd.setName(targetClass);
             return cd;
         }
 
