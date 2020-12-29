@@ -1,4 +1,4 @@
-package org.samba.kotlinkoanscollectionkata;
+package org.samba.streamsshopkata;
 
 import lombok.Value;
 

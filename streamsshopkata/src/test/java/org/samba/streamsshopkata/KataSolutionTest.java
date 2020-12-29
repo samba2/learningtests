@@ -1,16 +1,14 @@
-package org.samba.kotlinkoanscollectionkata;
+package org.samba.streamsshopkata;
 
 import com.google.common.collect.Sets;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.samba.kotlinkoanscollectionkata.TestShop.*;
+import static org.samba.streamsshopkata.TestShop.*;
 
 class KataSolutionTest {
 
@@ -161,7 +159,7 @@ class KataSolutionTest {
 
     @Test
     public void sum() {
-         // Return the sum of prices of all products that a customer has ordered.
+        // Return the sum of prices of all products that a customer has ordered.
         // Note: the customer may order the same product for several times.
         assertThat(getTotalOrderPrice(shop.getCustomers().get(0)))
                 .isEqualTo(586);
@@ -176,7 +174,7 @@ class KataSolutionTest {
 
     @Test
     public void groupCustomersByCity() {
-         // Return a map of the customers living in each city
+        // Return a map of the customers living in each city
         var result = groupCustomersByCity(shop);
         Assertions.assertThat(result).hasSize(5);
 
@@ -203,7 +201,7 @@ class KataSolutionTest {
                 .containsExactly("Reka");
     }
 
-    // follows the proposed implementation
+// follows the proposed implementation
     private static Set<Customer> getCustomersWithMoreUndeliveredOrdersThanDelivered2(Shop shop) {
         return shop.getCustomers().stream()
                 .filter(customer -> {
@@ -216,20 +214,20 @@ class KataSolutionTest {
 
     @Test
     public void reduce() {
-         // Return the set of products that were ordered by every customer
+        // Return the set of products that were ordered by every customer
         Assertions.assertThat(getSetOfProductsOrderedByEveryCustomer(shop)).isEmpty();
-        Assertions.assertThat(getSetOfProductsOrderedByEveryCustomer2(shop)).isEmpty();
     }
 
-
-    // follows the suggested implementation
-    // algorithm:
-    // - start with a set of all products ever ordered by any customer
-    // - at each reduction step, calculate the common products of the previous step and the current. Take the outcome
-    //   as the input (= new "commonProducts") for the next reduction step. For the first step this is the full "allProducts" set.
-    // - with each reduction step the set of common products is either untouched or decreased
-    // - the third combiner argument is needed since "commonProducts" and "customer" are of different type.
-    //   See here for details (2nd answer): https://stackoverflow.com/questions/24308146/why-is-a-combiner-needed-for-reduce-method-that-converts-type-in-java-8
+    /*
+    * follows the suggested implementation
+    * algorithm:
+    * - start with a set of all products ever ordered by any customer
+    * - at each reduction step, calculate the common products of the previous step and the current. Take the outcome
+    *   as the input (= new "commonProducts") for the next reduction step. For the first step this is the full "allProducts" set.
+    * - with each reduction step the set of common products is either untouched or decreased
+    * - the third combiner argument is needed since "commonProducts" and "customer" are of different type.
+    *   See here for details (2nd answer): https://stackoverflow.com/questions/24308146/why-is-a-combiner-needed-for-reduce-method-that-converts-type-in-java-8
+    * */
     private static Set<Product> getSetOfProductsOrderedByEveryCustomer(Shop shop) {
         return shop.getCustomers().stream()
                 .reduce(getAllProducts(shop),
@@ -237,7 +235,7 @@ class KataSolutionTest {
                         Sets::union);
     }
 
-    // less funky implementation using local state
+    // IGNORE, alternative, less funky implementation using local state
     private static Set<Product> getSetOfProductsOrderedByEveryCustomer2(Shop shop) {
         var allProducts = getAllProducts(shop);
         shop.getCustomers().stream()
@@ -245,6 +243,7 @@ class KataSolutionTest {
         return allProducts;
     }
 
+    // IGNORE
     private static Set<Product> getAllProducts(Shop shop) {
         return shop.getCustomers().stream()
                 .flatMap(customer -> customer.getOrders().stream())
@@ -252,6 +251,7 @@ class KataSolutionTest {
                 .collect(Collectors.toSet());
     }
 
+    // IGNORE
     private static Set<Product> getCustomerProducts(Customer customer) {
         return customer.getOrders().stream()
                 .flatMap(order -> order.getProducts().stream())
@@ -260,7 +260,7 @@ class KataSolutionTest {
 
     @Test
     public void compoundTask1() {
-         // Return the most expensive product among all delivered products
+        // Return the most expensive product among all delivered products
         // (use the Order.isDelivered flag)
         var testCustomer = TestShop.customer(TestShop.reka, TestShop.Budapest,
                 TestShop.order(false, TestShop.idea),
@@ -287,6 +287,7 @@ class KataSolutionTest {
         assertThat(getNumberOfTimesProductWasOrdered(shop, TestShop.rubyMine)).isEqualTo(1);
         assertThat(getNumberOfTimesProductWasOrdered(shop, TestShop.reSharper)).isEqualTo(3);
     }
+
 
     private static long getNumberOfTimesProductWasOrdered(Shop shop, Product product) {
         return shop.getCustomers().stream()
