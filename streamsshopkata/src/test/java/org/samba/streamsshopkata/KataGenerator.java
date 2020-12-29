@@ -74,24 +74,31 @@ public class KataGenerator {
         @Override
         public MethodDeclaration visit(MethodDeclaration md, Void arg) {
             super.visit(md, arg);
-            // look for "private static" methods
-            if (md.getModifiers().contains(Modifier.privateModifier()) &&
-                    md.getModifiers().contains(Modifier.staticModifier())) {
+            if (isSolutionContainingMethod(md)) {
+                // removed IGNORE methods
+                if (isIgnored(md)) return null;
 
-                // remove ignored methods
-                var comment = md.getComment();
-                if (comment.isPresent() && comment.get().getContent().contains("IGNORE")) {
-                    return null;
-                }
-
-                // replace implementation
-                BlockStmt cb = new BlockStmt();
-                cb.addStatement("throw new UnsupportedOperationException(\"IMPLEMENT ME\");");
-                md.setBody(cb);
-
+                replaceImplementation(md);
                 md.removeComment();
             }
             return md;
+        }
+
+        // look for "private static" methods
+        private boolean isSolutionContainingMethod(MethodDeclaration md) {
+            return md.getModifiers().contains(Modifier.privateModifier()) &&
+                    md.getModifiers().contains(Modifier.staticModifier());
+        }
+
+        private boolean isIgnored(MethodDeclaration md) {
+            var comment = md.getComment();
+            return comment.isPresent() && comment.get().getContent().contains("IGNORE");
+        }
+
+        private void replaceImplementation(MethodDeclaration md) {
+            BlockStmt cb = new BlockStmt();
+            cb.addStatement("throw new UnsupportedOperationException(\"IMPLEMENT ME\");");
+            md.setBody(cb);
         }
     }
 }
