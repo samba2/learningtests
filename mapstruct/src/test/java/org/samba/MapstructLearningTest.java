@@ -11,6 +11,7 @@ import java.time.Month;
 import java.time.ZonedDateTime;
 import java.util.Date;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 // see also https://www.baeldung.com/mapstruct
@@ -37,6 +38,7 @@ public class MapstructLearningTest {
     @Mapper
     public interface SimpleSourceDestinationMapper {
         SimpleDestination sourceToDestination(SimpleSource source);
+
         SimpleSource destinationToSource(SimpleDestination destination);
     }
 
@@ -48,8 +50,7 @@ public class MapstructLearningTest {
         SimpleSource source = new SimpleSource("Ronny", "mate");
         SimpleDestination destination = mapper.sourceToDestination(source);
 
-        assertEquals(source.getName(), destination.getName());
-        assertEquals(source.getDescription(), destination.getDescription());
+        assertThat(destination).usingRecursiveComparison().isEqualTo(source);
     }
 
     @Test
@@ -60,8 +61,7 @@ public class MapstructLearningTest {
         SimpleDestination destination = new SimpleDestination("Ronny", "mate");
         SimpleSource source = mapper.destinationToSource(destination);
 
-        assertEquals(destination.getName(), source.getName());
-        assertEquals(destination.getDescription(), source.getDescription());
+        assertThat(destination).usingRecursiveComparison().isEqualTo(source);
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -100,11 +100,18 @@ public class MapstructLearningTest {
         VinylRecord vinylRecord = new VinylRecord(new Date(2017 - 1900, 8, 1), "Great Artist", "Best Of");
         ShopProduct shopProduct = mapper.vinylRecordToShopProduct(vinylRecord);
 
-        assertEquals(vinylRecord.getArtist(), shopProduct.getMainTitle());
-        assertEquals(vinylRecord.getTitle(), shopProduct.getDescription());
-        assertEquals(2017, shopProduct.getManufactured().getYear());
-        assertEquals(Month.SEPTEMBER, shopProduct.getManufactured().getMonth());
-        assertEquals(1, shopProduct.getManufactured().getDayOfMonth());
+        assertThat(shopProduct).extracting(
+                "mainTitle",
+                "description",
+                "manufactured.year",
+                "manufactured.month",
+                "manufactured.dayOfMonth")
+                .containsExactly(
+                        vinylRecord.getArtist(),
+                        vinylRecord.getTitle(),
+                        2017,
+                        Month.SEPTEMBER,
+                        1);
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -134,8 +141,13 @@ public class MapstructLearningTest {
         VinylRecord vinylRecord = new VinylRecord(new Date(2017 - 1900, 8, 1), "Great Artist", "Best Of");
         ShopProduct shopProduct = mapper.vinylRecordToShopProduct(vinylRecord);
 
-        assertEquals("Great Artist - Best Of", shopProduct.getMainTitle());
-        assertEquals("Music by Great Artist, album is called Best Of", shopProduct.getDescription());
+        assertThat(shopProduct)
+                .extracting(
+                        ShopProduct::getMainTitle,
+                        ShopProduct::getDescription)
+                .containsExactly(
+                        "Great Artist - Best Of",
+                        "Music by Great Artist, album is called Best Of");
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -165,7 +177,13 @@ public class MapstructLearningTest {
         VinylRecord vinylRecord = new VinylRecord(new Date(2017 - 1900, 8, 1), "Great Artist", "Best Of");
         ShopProduct shopProduct = mapper.vinylRecordToShopProduct(vinylRecord);
 
-        assertEquals("Great Artist - Best Of", shopProduct.getMainTitle());
-        assertEquals("Music by Great Artist, album is called Best Of", shopProduct.getDescription());
+        assertThat(shopProduct)
+                .extracting(
+                        ShopProduct::getMainTitle,
+                        ShopProduct::getDescription)
+                .containsExactly(
+                        "Great Artist - Best Of",
+                        "Music by Great Artist, album is called Best Of"
+                );
     }
 }
