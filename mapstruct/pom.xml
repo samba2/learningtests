@@ -50,6 +50,21 @@
             </path>
 
           </annotationProcessorPaths>
+
+          <showWarnings>true</showWarnings>
+
+          <compilerArgs>
+<!--            should be enabled in prod build -->
+<!--            <compilerArg>-->
+<!--              -Amapstruct.unmappedTargetPolicy=ERROR-->
+<!--            </compilerArg>-->
+
+            <compilerArg>
+              -Amapstruct.verbose=false
+            </compilerArg>
+
+          </compilerArgs>
+
         </configuration>
       </plugin>
     </plugins>
