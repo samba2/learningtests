@@ -103,6 +103,7 @@
         
     <module>streamsshopkata</module>
       
+    <module>easyrandom</module>
   </modules>
   
 </project>
