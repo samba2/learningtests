@@ -13,6 +13,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 public class GreetingController {
 
+    // TODO continue reading here: https://www.heise.de/hintergrund/Pragmatische-Kuechentricks-fuer-RESTful-HAL-APIs-4963049.html?seite=all
+
     private static final String TEMPLATE = "Hello, %s!";
 
     @RequestMapping("/greeting")
