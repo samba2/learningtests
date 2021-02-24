@@ -2,7 +2,9 @@ package org.samba;
 
 
 import lombok.Builder;
+import lombok.SneakyThrows;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.redisson.Redisson;
@@ -16,10 +18,12 @@ import org.testcontainers.utility.DockerImageName;
 import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.*;
 
 @Testcontainers
+@Slf4j
 public class RedissonLearningTest {
 
     @Container
@@ -110,4 +114,34 @@ public class RedissonLearningTest {
         assertThat(studentCourses).hasSize(2);
         assertThat(studentCourses).containsAll(List.of(course1, course2));
     }
+
+    @Test
+    public void redisLocks() {
+
+        CompletableFuture.runAsync(() -> {
+            sleep(1);
+            log.info("Client 2 tries to acquired lock");
+            RLock lock = client.getLock("lock");
+            lock.lock();
+            log.info("Client 2 acquired lock, sleeping now");
+            sleep(5);
+            log.info("Client 2 done sleeping, about to release");
+            lock.unlock();
+            log.info("Client 2 released lock.");
+        });
+
+        log.info("Client 1 tries to acquired lock");
+        RLock lock = client.getLock("lock");
+        lock.lock();
+        log.info("Client 1 acquired lock, sleeping now");
+        sleep(5);
+        lock.unlock();
+        log.info("Client 1 released lock.");
+    }
+
+    @SneakyThrows
+    private void sleep(int seconds) {
+        Thread.sleep(seconds * 1000);
+    }
+
 }
