@@ -108,6 +108,35 @@ public class RedissonLearningTest {
         assertThat(departments.get("engineering").getCourses()).isNotEmpty();
     }
 
+    @Test
+    public void listMultimapKeepsDuplicateKeyValuePairs() {
+        RListMultimap<String, String> map = redissonClient.getListMultimap("multiMap");
+
+        map.put("Jonny", "Marr");
+        map.put("Jonny", "Marr");
+        map.put("Jonny", "Schmidt");
+        map.put("Ian", "Curtis");
+
+        assertThat(map.size()).isEqualTo(4);
+    }
+
+    @Test
+    public void setMultimapRemovesDuplicateKeyValuePairs() {
+        RSetMultimap<String, String> map = redissonClient.getSetMultimap("multiMap2");
+
+        map.put("Jonny", "Marr");
+        map.put("Jonny", "Marr");
+        map.put("Jonny", "Schmidt");
+        map.put("Ian", "Curtis");
+
+        assertThat(map.size()).isEqualTo(3);
+        assertThat(map.entries()).containsExactlyInAnyOrder(
+                entry("Jonny", "Marr"),
+                entry("Jonny", "Schmidt"),
+                entry("Ian", "Curtis")
+        );
+    }
+
 
     @Value(staticConstructor = "of")
     static class Department implements Serializable {
