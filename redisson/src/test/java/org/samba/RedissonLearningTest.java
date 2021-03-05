@@ -16,7 +16,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -30,14 +32,14 @@ public class RedissonLearningTest {
     public GenericContainer redis = new GenericContainer(DockerImageName.parse("redis:5.0.9-alpine"))
             .withExposedPorts(6379);
     private Config config;
-    private RedissonClient client;
+    private RedissonClient redissonClient;
 
 
     @BeforeEach
     public void setup() {
         config = new Config();
         config.useSingleServer().setAddress("redis://127.0.0.1:" + redis.getFirstMappedPort());
-        client = Redisson.create(config);
+        redissonClient = Redisson.create(config);
     }
 
     @Value
@@ -55,10 +57,10 @@ public class RedissonLearningTest {
                 .firstName("Ronny")
                 .lastName("Schmidt").build();
 
-        RBucket<Person> bucket1 = client.getBucket("a-person-bucket");
+        RBucket<Person> bucket1 = redissonClient.getBucket("a-person-bucket");
         bucket1.set(person);
 
-        RBucket<Object> bucket2 = client.getBucket("a-person-bucket");
+        RBucket<Object> bucket2 = redissonClient.getBucket("a-person-bucket");
         assertThat(bucket2.get()).isEqualTo(person);
     }
 
@@ -75,16 +77,47 @@ public class RedissonLearningTest {
                 .firstName("Petra")
                 .lastName("Mueller").build();
 
-        RMap<UUID, Person> map1 = client.getMap("a-person-map");
+        RMap<UUID, Person> map1 = redissonClient.getMap("a-person-map");
         map1.put(thisPerson.id, thisPerson);
         map1.put(otherPerson.id, otherPerson);
 
-        RMap<UUID, Person> map2 = client.getMap("a-person-map");
+        RMap<UUID, Person> map2 = redissonClient.getMap("a-person-map");
         assertThat(map2).hasSize(2);
 
         assertThat(map2).containsValues(thisPerson, otherPerson);
     }
 
+    @Test
+    public void RMapIsDeserializedCopyOfRedisHashAndNotReference() {
+        Map<String, Department> departments = redissonClient.getMap("departmentMap");
+        // initialize with empty department
+        departments.put("engineering", Department.of());
+
+        // get copy of department RMap from Redis
+        Department department = departments.get("engineering");
+        // alter local copy (!evil via getter!)
+        department.getCourses().put(StudentId.of(UUID.randomUUID()), Course.of("AB1", "Intro into something"));
+
+        // Redis content is unchanged
+        assertThat(departments.get("engineering").getCourses()).isEmpty();
+
+        // to make changes visible, update the engineering department, this writes back to Redis
+        departments.put("engineering", department);
+
+        // now pushed back changes are present
+        assertThat(departments.get("engineering").getCourses()).isNotEmpty();
+    }
+
+
+    @Value(staticConstructor = "of")
+    static class Department implements Serializable {
+        Map<StudentId, Course> courses = new HashMap<>();
+    }
+
+    @Value(staticConstructor = "of")
+    static class OtherDepartment implements Serializable {
+        Map<StudentId, Course> courses;
+    }
 
     @Value(staticConstructor = "of")
     static class StudentId implements Serializable {
@@ -103,12 +136,12 @@ public class RedissonLearningTest {
         Course course1 = Course.of("C1", "Introduction into Breakdance");
         Course course2 = Course.of("C2", "Advanced Head-Spinning");
 
-        RSetMultimap<StudentId, Course> map1 = client.getSetMultimap("course-register");
+        RSetMultimap<StudentId, Course> map1 = redissonClient.getSetMultimap("course-register");
         map1.put(someStudentId, course1);
         map1.put(someStudentId, course2);
         map1.put(someStudentId, course2); // duplication is eliminated due to Set
 
-        RSetMultimap<StudentId, Course> map2 = client.getSetMultimap("course-register");
+        RSetMultimap<StudentId, Course> map2 = redissonClient.getSetMultimap("course-register");
         RSet<Course> studentCourses = map2.get(someStudentId);
 
         assertThat(studentCourses).hasSize(2);
@@ -121,7 +154,7 @@ public class RedissonLearningTest {
         CompletableFuture.runAsync(() -> {
             sleep(1);
             log.info("Client 2 tries to acquired lock");
-            RLock lock = client.getLock("lock");
+            RLock lock = redissonClient.getLock("lock");
             lock.lock();
             log.info("Client 2 acquired lock, sleeping now");
             sleep(5);
@@ -131,7 +164,7 @@ public class RedissonLearningTest {
         });
 
         log.info("Client 1 tries to acquired lock");
-        RLock lock = client.getLock("lock");
+        RLock lock = redissonClient.getLock("lock");
         lock.lock();
         log.info("Client 1 acquired lock, sleeping now");
         sleep(5);
