@@ -109,6 +109,39 @@ public class RedissonLearningTest {
     }
 
     @Test
+    public void hashMapEntrySetRemoveDoesNotWriteBackToRedis() {
+        Map<String, Department> departments = redissonClient.getMap("departmentMap");
+        // initialize with empty department
+        departments.put("engineering", Department.of());
+        assertThat(departments).isNotEmpty();
+
+        // ! this does not remove the entry in redis
+        departments.entrySet().remove("engineering");
+
+        // fresh copy
+        Map<String, Department> departments2 = redissonClient.getMap("departmentMap");
+        // "engineering" is still present
+        assertThat(departments2).containsKey("engineering");
+    }
+
+    @Test
+    public void workAroundRemovingElementFromHashMap() {
+        Map<String, Department> departments = redissonClient.getMap("departmentMap");
+        // initialize with empty department
+        departments.put("engineering", Department.of());
+        assertThat(departments).isNotEmpty();
+
+        departments.entrySet().stream()
+                .filter(it -> it.getKey().startsWith("engin"))
+                // call "remove" directly
+                .forEach( it -> departments.remove(it.getKey()));
+
+        // fresh copy
+        Map<String, Department> departments2 = redissonClient.getMap("departmentMap");
+        assertThat(departments2).isEmpty();
+    }
+
+    @Test
     public void listMultimapKeepsDuplicateKeyValuePairs() {
         RListMultimap<String, String> map = redissonClient.getListMultimap("multiMap");
 
