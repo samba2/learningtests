@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +18,8 @@ import lombok.val;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.stream.Collectors;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -124,11 +127,11 @@ public class JacksonLearningTest {
         System.out.println(jsonWithExtraProperty);
     }
 
+
     @Test
     public void enrichPojo() throws JsonProcessingException {
         val studentJson = "{\"name\":\"Mahesh\", \"age\":21}";
         val mapper = new ObjectMapper();
-
         val module = new SimpleModule("CustomStudentDeSerializer");
         module.addDeserializer(EnrichedStudent.class, new CustomStudentDeSerializer());
         mapper.registerModule(module);
@@ -139,6 +142,47 @@ public class JacksonLearningTest {
         assertTrue(enrichedStudent.isFullAge());
     }
 
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    static class SomePojo {
+        private int a;
+        private ZonedDateTime timestamp;
+    }
+
+    static public class ZonedDateTimeWithFixedZoneIdSerializer extends StdSerializer<ZonedDateTime> {
+
+        private static final ZoneId MY_ZONE = ZoneId.of("America/Los_Angeles");
+
+        public ZonedDateTimeWithFixedZoneIdSerializer() {
+            this(null);
+        }
+
+        public ZonedDateTimeWithFixedZoneIdSerializer(Class<ZonedDateTime> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(ZonedDateTime value, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+            val timestampWithAdjustedZone = value.withZoneSameInstant(MY_ZONE);
+            ZonedDateTimeSerializer.INSTANCE.serialize(timestampWithAdjustedZone, jsonGenerator, serializerProvider);
+        }
+    }
+
+    @Test
+    public void serializeZoneDateTimeWithFixedZoneId() throws JsonProcessingException {
+        val mapper = new ObjectMapper();
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        val module = new SimpleModule("ZonedDateTimeWithFixZoneIdModule");
+        module.addSerializer(ZonedDateTime.class, new ZonedDateTimeWithFixedZoneIdSerializer());
+        mapper.registerModule(module);
+
+        val student = new SomePojo(42, ZonedDateTime.now());
+        val result = mapper.writeValueAsString(student);
+
+        System.out.println(result);
+    }
 
     @Data
     @AllArgsConstructor
